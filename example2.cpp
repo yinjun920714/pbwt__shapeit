@@ -19,17 +19,17 @@ int main() {
 	int tmp = 0;
 	//first segment
 	for ( int i = 0; i < L; i++) {
-			for ( int j = 0 ; j < NUM_INDIVIDUAL; j++) {
-				in>>data[i][j];
-			}
-			ref[i] = data[i][0] + data[i][1];
-			if (ref[i] == 1) {
-				tmp++;	
-				if (tmp == B) {
-				end = i + 1;
-				break;
-			    }				
-			}
+		for ( int j = 0 ; j < NUM_INDIVIDUAL; j++) {
+			in>>data[i][j];
+		}
+		ref[i] = data[i][0] + data[i][1];
+		if (ref[i] == 1) {
+			tmp++;	
+			if (tmp == B) {
+			end = i + 1;
+			break;
+			}				
+		}
 	}
 
 	int count[64];
@@ -75,24 +75,18 @@ int main() {
 	for ( int i = 0; i < 64; i++)
 		count[i] = 0;
 	for ( int i = 0; i < L; i++) {
-			int j = 0;
-			for ( ; j < 2; j++) {
-				in>>data[i][j];
-			}
-
-			ref[i] = data[i][0] + data[i][1];
-			if (ref[i] == 1) {
-				tmp++;
-				if (tmp == B) {
-					end = i;
-					break;
-				}
-			}
-
-			for ( ; j < NUM_INDIVIDUAL; j++) {
-				in>>data[i][j];
-			}
+		for ( int j = 0 ; j < NUM_INDIVIDUAL; j++) {
+			in>>data[i][j];
 		}
+		ref[i] = data[i][0] + data[i][1];
+		if (ref[i] == 1) {
+			tmp++;	
+			if (tmp == B) {
+			end = i + 1;
+			break;
+			}				
+		}
+	}
 
 	//	compare
 	for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
