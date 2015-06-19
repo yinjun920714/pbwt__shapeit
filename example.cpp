@@ -8,7 +8,7 @@
 using namespace std;
 
 int main() {
-	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.simplified.txt");
+	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.small.txt");
 //	ofstream out ("test_output.txt");
 	int data[L][NUM_INDIVIDUAL];
 	for ( int i = 0; i < L; i++) {

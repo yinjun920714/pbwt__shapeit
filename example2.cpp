@@ -3,14 +3,16 @@
 #include <cstring>
 #define B 3
 #define L 1000
-#define NUM_INDIVIDUAL 10
+#define NUM_INDIVIDUAL 5008
 
 using namespace std;
 
 int main() {
-	ifstream in ("test_input.txt");
+	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.small.txt");
 //	ofstream out ("test_output.txt");
-	int data[L][NUM_INDIVIDUAL];
+	int **data = new int*[L];
+	for (int i = 0; i < L; i++)
+		data[i] = new int[NUM_INDIVIDUAL];
 	int *prev_record = new int[NUM_INDIVIDUAL];      //record the consistent haplotypes labels of previous segment
 	int end = 0;
 	int ref[L];
@@ -129,5 +131,9 @@ int main() {
 //	out.close();
 
 	delete [] prev_record;
+	for (int i = 0; i < L; i++) {
+		delete [] data[i];
+	}
+	delete [] data;
 	return 0;
 }
