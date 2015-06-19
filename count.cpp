@@ -8,7 +8,7 @@
 using namespace std;
 
 int main() {
-	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.simplified.txt");
+	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.small.txt");
 	char c = ' ';
 	int count = 0;
 	while (c!='\n') {

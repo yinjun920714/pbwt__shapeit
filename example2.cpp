@@ -8,7 +8,7 @@
 using namespace std;
 
 int main() {
-	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.simplified.txt");
+	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.small.txt");
 //	ofstream out ("test_output.txt");
 	int data[L][NUM_INDIVIDUAL];
 	int *prev_record = new int[NUM_INDIVIDUAL];      //record the consistent haplotypes labels of previous segment
@@ -128,6 +128,6 @@ int main() {
 	in.close();
 //	out.close();
 
-
+	delete []prev_record;
 	return 0;
 }
