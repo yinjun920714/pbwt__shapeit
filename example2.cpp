@@ -3,12 +3,12 @@
 #include <cstring>
 #define B 3
 #define L 1000
-#define NUM_INDIVIDUAL 5008
+#define NUM_INDIVIDUAL 10
 
 using namespace std;
 
 int main() {
-	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.small.txt");
+	ifstream in ("test_input.txt");
 //	ofstream out ("test_output.txt");
 	int data[L][NUM_INDIVIDUAL];
 	int *prev_record = new int[NUM_INDIVIDUAL];      //record the consistent haplotypes labels of previous segment
@@ -64,14 +64,14 @@ int main() {
 	}
 	//print the first segment
 	cout<<"the first segment"<<endl;
-	cout<<"000"<<count[0]<<endl;
-	cout<<"001"<<count[1]<<endl;
-	cout<<"010"<<count[2]<<endl;
-	cout<<"011"<<count[3]<<endl;
-	cout<<"100"<<count[4]<<endl;
-	cout<<"101"<<count[5]<<endl;
-	cout<<"110"<<count[6]<<endl;
-	cout<<"111"<<count[7]<<endl;
+	cout<<"000 "<<count[0]<<endl;
+	cout<<"001 "<<count[1]<<endl;
+	cout<<"010 "<<count[2]<<endl;
+	cout<<"011 "<<count[3]<<endl;
+	cout<<"100 "<<count[4]<<endl;
+	cout<<"101 "<<count[5]<<endl;
+	cout<<"110 "<<count[6]<<endl;
+	cout<<"111 "<<count[7]<<endl;
 
 	//from the second segment
 
@@ -128,6 +128,6 @@ int main() {
 	in.close();
 //	out.close();
 
-	delete []prev_record;
+	delete [] prev_record;
 	return 0;
 }
