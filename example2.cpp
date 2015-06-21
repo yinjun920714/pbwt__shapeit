@@ -69,14 +69,22 @@ int main() {
 	cout<<"110 "<<count[6]<<endl;
 	cout<<"111 "<<count[7]<<endl;
 
-	for ( int k = 0; k < ; ++k) {
+	bool last_segment = false;
+	while (true) {
 		//from the second segment   
 		tmp = 0;
 		for ( int i = 0; i < 64; i++)
 			count[i] = 0;
 		for ( int i = 0; i < L; i++) {
 			for ( int j = 0 ; j < NUM_INDIVIDUAL; j++) {
-				in>>data[i][j];
+				if( !in>>data[i][j]) {
+					last_segment = true;
+					break;				
+				}
+			}
+			if (last_segment) {
+				end = i;				
+				break;
 			}
 			ref[i] = data[i][0] + data[i][1];
 			if (ref[i] == 1) {
@@ -86,8 +94,15 @@ int main() {
 				break;
 				}				
 			}
+			if (i == L - 1) {
+				cout<<"exceed max length of segment"<<endl;
+				return -1;							
+			}
 		}
-
+		
+		if (last_segment) {
+			break;		
+		}
 		//	compare
 		for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
 			consistent_flag = true;
@@ -116,6 +131,37 @@ int main() {
 			cout<<"index "<<i<<"     "<<count[i]<<endl;
 	}
 	
+	//compare last segment
+	int count_idx;
+	if (!tmp) {
+		for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
+			consistent_flag = true;
+			record_idx = 0;
+			for ( int i = 0; i < end; i++) {
+				if (ref[i] != 1) {
+					if (data[i][j] != ref[i] / 2) {
+						consistent_flag = false;
+						prev_record[j] = 8;      // for non-consistent haplotypes
+						break;
+					}
+				} else {
+					record[record_idx++] = data[i][j];
+			    }
+			}
+			if (consistent_flag) {
+				if (prev_record[j] != 8) {
+					count_idx = record[0];					
+					for (int k = 1; k < tmp; k++) {
+						count_idx = count_idx * 2 + record[k];
+					}
+					count[prev_record[j] * 8 + count_idx]++;
+				}			
+			}
+		}
+
+		for (int i = 0; i < tmp * 8; i++)
+			cout<<"index "<<i<<"     "<<count[i]<<endl;
+	}
 	in.close();
 //	out.close();
 
