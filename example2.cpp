@@ -71,6 +71,7 @@ int main() {
 	cout<<"111 "<<count[7]<<endl;
 
 	bool last_segment = false;
+	int seg_num = 2;
 	while (true) {
 		//from the second segment   
 		tmp = 0;
@@ -128,15 +129,15 @@ int main() {
 			}
 		}
 		
-		cout<<endl<<endl;
+		cout<<"\n\nsegment num\t"<<setw(4)<<seg_num++;
 		cout<<setw(5)<<"index";
 		for (int j = 0; j < 8; j++)
-			cout<<setw(4)<<j;
+			cout<<setw(10)<<j;
 		cout<<endl;
 		for (int i = 0; i < 8; i++) {
 			cout<<setw(5)<<i;
 			for (int j = 0; j < 8; j++)
-				cout<<setw(4)<<count[i * 8 + j];
+				cout<<setw(10)<<count[i * 8 + j];
 			cout<<endl;
 		}
 	}
