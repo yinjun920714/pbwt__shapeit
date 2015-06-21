@@ -3,13 +3,13 @@
 #include <cstring>
 #include <iomanip>
 #define B 3
-#define L 1000
+#define L 10000
 #define NUM_INDIVIDUAL 5008
 
 using namespace std;
 
 int main() {
-	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.small.txt");
+	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.simplified.txt");
 //	ofstream out ("test_output.txt");
 	int **data = new int*[L];
 	for (int i = 0; i < L; i++)
@@ -129,7 +129,7 @@ int main() {
 			}
 		}
 		
-		cout<<"\n\nsegment num\t"<<setw(4)<<seg_num++;
+		cout<<"\n\nsegment num\t"<<setw(4)<<seg_num++<<endl;
 		cout<<setw(5)<<"index";
 		for (int j = 0; j < 8; j++)
 			cout<<setw(10)<<j;
