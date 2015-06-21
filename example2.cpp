@@ -69,52 +69,53 @@ int main() {
 	cout<<"110 "<<count[6]<<endl;
 	cout<<"111 "<<count[7]<<endl;
 
-	//from the second segment
+	for ( int k = 0; k < ; ++k) {
+		//from the second segment   
+		tmp = 0;
+		for ( int i = 0; i < 64; i++)
+			count[i] = 0;
+		for ( int i = 0; i < L; i++) {
+			for ( int j = 0 ; j < NUM_INDIVIDUAL; j++) {
+				in>>data[i][j];
+			}
+			ref[i] = data[i][0] + data[i][1];
+			if (ref[i] == 1) {
+				tmp++;	
+				if (tmp == B) {
+				end = i + 1;
+				break;
+				}				
+			}
+		}
 
-	tmp = 0;
-	for ( int i = 0; i < 64; i++)
-		count[i] = 0;
-	for ( int i = 0; i < L; i++) {
-		for ( int j = 0 ; j < NUM_INDIVIDUAL; j++) {
-			in>>data[i][j];
+		//	compare
+		for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
+			consistent_flag = true;
+			record_idx = 0;
+			for ( int i = 0; i < end; i++) {
+				if (ref[i] != 1) {
+					if (data[i][j] != ref[i] / 2) {
+						consistent_flag = false;
+						prev_record[j] = 8;      // for non-consistent haplotypes
+						break;
+					}
+				} else {
+					record[record_idx++] = data[i][j];
+			    }
+			}
+			if (consistent_flag) {
+				if (prev_record[j] != 8) {
+					count[prev_record[j] * 8 + record[0] * 4 + record[1] * 2 + record[2]]++;
+				}			
+				prev_record[j] = record[0] * 4 + record[1] * 2 + record[2];
+
+			}
 		}
-		ref[i] = data[i][0] + data[i][1];
-		if (ref[i] == 1) {
-			tmp++;	
-			if (tmp == B) {
-			end = i + 1;
-			break;
-			}				
-		}
+
+		for (int i = 0; i < 64; i++)
+			cout<<"index "<<i<<"     "<<count[i]<<endl;
 	}
-
-	//	compare
-	for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
-		consistent_flag = true;
-		record_idx = 0;
-		for ( int i = 0; i < end; i++) {
-			if (ref[i] != 1) {
-				if (data[i][j] != ref[i] / 2) {
-					consistent_flag = false;
-					prev_record[j] = 8;      // for non-consistent haplotypes
-					break;
-				}
-			} else {
-				record[record_idx++] = data[i][j];
-		    }
-		}
-		if (consistent_flag) {
-			if (prev_record[j] != 8) {
-				count[prev_record[j] * 8 + record[0] * 4 + record[1] * 2 + record[2]]++;
-			}			
-			prev_record[j] = record[0] * 4 + record[1] * 2 + record[2];
-
-		}
-	}
-
-	for (int i = 0; i < 64; i++)
-		cout<<"index "<<i<<"     "<<count[i]<<endl;
-
+	
 	in.close();
 //	out.close();
 
