@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <iomanip>
 #define B 3
 #define L 1000
 #define NUM_INDIVIDUAL 5008
@@ -77,7 +78,7 @@ int main() {
 			count[i] = 0;
 		for ( int i = 0; i < L; i++) {
 			for ( int j = 0 ; j < NUM_INDIVIDUAL; j++) {
-				if( !in>>data[i][j]) {
+				if( !(in>>data[i][j])) {
 					last_segment = true;
 					break;				
 				}
@@ -126,9 +127,18 @@ int main() {
 
 			}
 		}
-
-		for (int i = 0; i < 64; i++)
-			cout<<"index "<<i<<"     "<<count[i]<<endl;
+		
+		cout<<endl<<endl;
+		cout<<setw(5)<<"index";
+		for (int j = 0; j < 8; j++)
+			cout<<setw(4)<<j;
+		cout<<endl;
+		for (int i = 0; i < 8; i++) {
+			cout<<setw(5)<<i;
+			for (int j = 0; j < 8; j++)
+				cout<<setw(4)<<count[i * 8 + j];
+			cout<<endl;
+		}
 	}
 	
 	//compare last segment
