@@ -2,14 +2,22 @@
 #include <fstream>
 #include <cstring>
 #include <iomanip>
+#include <stdio.h>
+#include <sys/time.h>
+#include <unistd.h>
 #define B 3
 #define L 10000
-#define NUM_INDIVIDUAL 5008
+//#define NUM_INDIVIDUAL 2184
 
 using namespace std;
 
-int main() {
-	ifstream in ("ALL.chr20.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.simplified.txt");
+int main(int argc, char *argv[]) {
+	struct timeval tstart, tend;
+    gettimeofday( &tstart, NULL );
+	
+
+	ifstream in (argv[1]);
+	int NUM_INDIVIDUAL = atoi(argv[2]);
 //	ofstream out ("test_output.txt");
 	int **data = new int*[L];
 	for (int i = 0; i < L; i++)
@@ -40,7 +48,7 @@ int main() {
 	int record_idx;
 	bool consistent_flag;
 	//	compare
-	for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
+	for ( int j = 0; j < NUM_INDIVIDUAL; j++) {
 		consistent_flag = true;
 		record_idx = 0;
 		for ( int i = 0; i < end; i++) {
@@ -106,7 +114,7 @@ int main() {
 			break;		
 		}
 		//	compare
-		for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
+		for ( int j = 0; j < NUM_INDIVIDUAL; j++) {
 			consistent_flag = true;
 			record_idx = 0;
 			for ( int i = 0; i < end; i++) {
@@ -145,7 +153,7 @@ int main() {
 	//compare last segment
 	int count_idx;
 	if (!tmp) {
-		for ( int j = 2; j < NUM_INDIVIDUAL; j++) {
+		for ( int j = 0; j < NUM_INDIVIDUAL; j++) {
 			consistent_flag = true;
 			record_idx = 0;
 			for ( int i = 0; i < end; i++) {
@@ -181,5 +189,18 @@ int main() {
 		delete [] data[i];
 	}
 	delete [] data;
+
+	gettimeofday( &tend, NULL );
+    int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
+
+    
+    //calculate the input time;
+    gettimeofday( &tstart, NULL );
+    ifstream in2 ("phase1.chr20.10-11Mb.txt");
+    while(!(in2>>tmp));
+    in2.close();
+    gettimeofday( &tend, NULL );
+    tmp = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
+	printf("time: %d us\n", timeuse - tmp);
 	return 0;
 }
