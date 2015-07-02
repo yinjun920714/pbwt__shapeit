@@ -206,8 +206,11 @@ void matchSequencesDynamic (PBWT *p, FILE *fp) ;
 void matchSequencesSweep (PBWT *p, PBWT *q, void (*report)(int, int, int, int)) ;
 void matchSequencesSweepSparse (PBWT *p, PBWT *q, int nSparse,
 				void (*report)(int, int, int, int, BOOL)) ;
+
+/* pbwtShapeit.c - functions implemented by Jun Yin */
+
 void pbwtMatchCount (PBWT *p, int L) ;
-void countHelp(int *x, int start, int end, int *cc, int **u, int *f, int *g);
+//void countHelp(int *x, int start, int end, int *cc, int **u, int *f, int *g);
 
 /* pbwtImpute.c */
 
