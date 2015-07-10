@@ -29,6 +29,18 @@ static void setSeq(uchar *dir, int *pos, int seq, int index) {
 }
 
 static int compare(uchar **reference, int L, uchar *shape1, uchar *shape2, int N) {
+    int count = 0;
+    uchar *cur;
+    cur = shape1;
+    for ( int i = 0; i < N; ++i ) {
+      if(cur[i] != reference[2*L][i] ) {
+        count++;
+        cur = ( cur == shape1 ? shape2 : shape1 ); 
+      }  
+    }
+    return count;
+
+/* privious compare
     int total1, total2;
     int *fragment1, *fragment2;
     fragment1 = myalloc(N, int);
@@ -51,7 +63,7 @@ static int compare(uchar **reference, int L, uchar *shape1, uchar *shape2, int N
         count2 = 1;
       }
     }
-    /*
+    
     for (int i = 0; i < N; ++i){
       printf("%u", reference[L * 2][i]);
       printf("%u", reference[L * 2 + 1][i]);
@@ -60,7 +72,7 @@ static int compare(uchar **reference, int L, uchar *shape1, uchar *shape2, int N
       printf("\n");
     } 
     printf("\n");
-    */
+    
 
     // printf("%*.*s\n", N, N, shape1);
     free (fragment1) ;
@@ -286,7 +298,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       }
       start = end;
     }
-/* print 
+/* print */ 
    for ( i = 0; i < seg_num - 2; ++i) {
       printf("segment num\t%d\n", i + 2);
       printf("index\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",0,1,2,3,4,5,6,7);
@@ -302,7 +314,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
           g2[8*j+7][i] - f2[8*j+7][i]);
       printf("\n\n");
     }
-*/
+
   }
 
   gettimeofday( &tend, NULL );
@@ -311,10 +323,10 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   printf("time: %d us\n", timeuse);
   //Shape it
   MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
-  fprintf (stderr, "\n\nAfter ML Sampling frag_num: \t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));
+  fprintf (stderr, "\nAfter ML Sampling frag_num: \t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));
 
   globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
-  fprintf (stderr, "\n\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));
+  fprintf (stderr, "\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));
 
 /*  
   for (int i = 0; i < N; ++i){
