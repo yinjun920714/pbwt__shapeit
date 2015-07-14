@@ -78,7 +78,7 @@ static int compare(uchar **reference, int L, uchar *shape1, uchar *shape2, int N
     free (fragment1) ;
     free (fragment2) ;
     return (total1 > total2 ? total2 : total1);
-/*
+
     std::map<int, int> map1; //shape1 compare 2*L;
     std::map<int, int> map2; //shape1 compare 2*L + 1;
     std::map<int, int> ::iterator it;
@@ -171,18 +171,18 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
  
   
-  struct timeval tstart, tend;
-  gettimeofday( &tstart, NULL );
+//  struct timeval tstart, tend;
+//  gettimeofday( &tstart, NULL );
 
   int t;  //multi_time
   int TIMES = 1;
   for (t = 0; t < TIMES; ++t) {
     // L = rand()%(M/2); 
     
-    seg_num = 1;
-    num_1 = 0;
-    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
-    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+//    seg_num = 1;
+//    num_1 = 0;
+//    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+//    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
 
     for ( i = 0; i < N; ++i)
       x[i] = reference[L * 2][i] + reference[L * 2 + 1][i];
@@ -317,10 +317,10 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
 
   }
 
-  gettimeofday( &tend, NULL );
-  int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
-  timeuse /= TIMES;
-  printf("time: %d us\n", timeuse);
+ // gettimeofday( &tend, NULL );
+ // int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
+ // timeuse /= TIMES;
+ // printf("time: %d us\n", timeuse);
   //Shape it
   MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
   fprintf (stderr, "\nAfter ML Sampling frag_num: \t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));

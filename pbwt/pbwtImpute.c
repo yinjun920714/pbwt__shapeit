@@ -1145,10 +1145,9 @@ static PBWT *referenceImpute3 (PBWT *pOld, PBWT *pRef, PBWT *pFrame,
 
   for (j = 0 ; j < pOld->M ; ++j)	/* add terminating element to arrays */
     { if (nSparse > 1) /* can't guarantee order of sparse segments */
-	if (mergesort (arrp(maxMatch[j], 0, MatchSegment), arrayMax(maxMatch[j]), 
-		       sizeof(MatchSegment), matchSegmentCompare))
-	  die ("error %d in mergesort", errno) ;
-      /* mergesort() because they are close to being already sorted */
+         qsort (arrp(maxMatch[j], 0, MatchSegment), arrayMax(maxMatch[j]), sizeof(MatchSegment), matchSegmentCompare);
+	//  die ("error %d in mergesort", errno) ;
+      	/* mergesort() because they are close to being already sorted */
       if (isCheck) fprintf (stderr, "%ld matches found to query %d\n", 
 			    arrayMax(maxMatch[j]), j) ;
       /* add an end marker */

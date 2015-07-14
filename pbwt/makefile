@@ -46,7 +46,7 @@ pbwtMatch.o: pbwtMatch.c pbwt.h utils.h
 	gcc $(CFLAGS) -c pbwtMatch.c
 
 pbwtShapeit.o: pbwtShapeit.c pbwt.h utils.h
-	gcc $(CFLAGS) -c pbwtShapeit.c
+	gcc -std=c99 $(CFLAGS) -c pbwtShapeit.c
 
 pbwtImpute.o: pbwtImpute.c pbwt.h utils.h
 	gcc $(CFLAGS) -c pbwtImpute.c

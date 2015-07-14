@@ -13,8 +13,8 @@
 
 #include "utils.h"
 #include "pbwt.h"
-#include <htslib/synced_bcf_reader.h>
-#include <htslib/faidx.h>
+#include "htslib/synced_bcf_reader.h"
+#include "htslib/faidx.h"
 
 const char *pbwtHtslibVersionString(void)
 {
