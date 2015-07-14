@@ -147,7 +147,7 @@ printf("1~~~~~~~~~~~~~\n");
   d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
   u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
   x = myalloc (N, uchar*) ; 
-  pos = myalloc (M, int*) ;
+  pos = myalloc (N, int*) ;
   f1 = myalloc (8, int*);
   g1 = myalloc (8, int*);
   f2 = myalloc (64, int*);
@@ -169,11 +169,8 @@ printf("1~~~~~~~~~~~~~\n");
   memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
   pbwtCursorDestroy (up) ;
   
-printf("1.5~~~~~~~~~~~~~\n");
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
-printf("1.7~~~~~~~~~~~~~\n");
   memcpy (origin[0], reference[2*L], N*sizeof(uchar));
-printf("1.8~~~~~~~~~~~~~\n");
   memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
   
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
@@ -197,14 +194,11 @@ printf("2~~~~~~~~~~~~~\n");
 //    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
 //    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
 
-printf("2.01~~~~~~~~~~~~~\n");
     for ( i = 0; i < N; ++i)
       x[i] = origin[0][i] + origin[1][i];
     
-printf("2.02~~~~~~~~~~~~~\n");
     for ( i = 0, j = 0; i < N; ++i) {
       if (x[i] == 1) {
-printf("#%d\t%d\t%d\n", i, x[i], N);
         ++j;
         pos[num_1++] = i;
         if (j == 3) {
@@ -215,13 +209,10 @@ printf("#%d\t%d\t%d\n", i, x[i], N);
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
 
-printf("2.1~~~~~~~~~~~~~\n");
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
     fprintf (stderr, "\n\nInitial frag_num: \t\t\t\t%d\n", compare(origin, shape1, shape2, N));
-
     
-printf("2.2~~~~~~~~~~~~~\n");
     for ( i = 0; i < 8; ++i) { 
       f1[i] = myalloc(seg_num, int*);
       g1[i] = myalloc(seg_num, int*);
@@ -237,7 +228,6 @@ printf("2.2~~~~~~~~~~~~~\n");
       }
     //one segment count
     // last segment may not 3 1s;
-printf("2.3~~~~~~~~~~~~~\n");
     int start = 0, end;
     for ( i = 0; i < seg_num - 1; ++i) {
       end = pos[i * 3 + 2] + 1;
