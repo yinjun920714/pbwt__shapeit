@@ -28,12 +28,12 @@ static void setSeq(uchar *dir, int *pos, int seq, int index) {
   return;
 }
 
-static int compare(uchar **reference, int L, uchar *shape1, uchar *shape2, int N) {
+static int compare(uchar **origin, uchar *shape1, uchar *shape2, int N) {
     int count = 0;
     uchar *cur;
     cur = shape1;
     for ( int i = 0; i < N; ++i ) {
-      if(cur[i] != reference[2*L][i] ) {
+      if(cur[i] != origin[0][i] ) {
         count++;
         cur = ( cur == shape1 ? shape2 : shape1 ); 
       }  
@@ -127,8 +127,9 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
-
+printf("1~~~~~~~~~~~~~\n");
   uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  uchar **origin;
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
   int **a, **d, **u ;   /* stored indexes */
@@ -167,9 +168,21 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   memcpy (a[k], up->a, M*sizeof(int)) ;
   memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
   pbwtCursorDestroy (up) ;
-
+  
+printf("1.5~~~~~~~~~~~~~\n");
+  origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
+printf("1.7~~~~~~~~~~~~~\n");
+  memcpy (origin[0], reference[2*L], N*sizeof(uchar));
+printf("1.8~~~~~~~~~~~~~\n");
+  memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
+  
+  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
+  for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
+  
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
  
+printf("2~~~~~~~~~~~~~\n");
   
 //  struct timeval tstart, tend;
 //  gettimeofday( &tstart, NULL );
@@ -184,11 +197,14 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
 //    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
 //    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
 
+printf("2.01~~~~~~~~~~~~~\n");
     for ( i = 0; i < N; ++i)
-      x[i] = reference[L * 2][i] + reference[L * 2 + 1][i];
+      x[i] = origin[0][i] + origin[1][i];
     
+printf("2.02~~~~~~~~~~~~~\n");
     for ( i = 0, j = 0; i < N; ++i) {
       if (x[i] == 1) {
+printf("#%d\t%d\t%d\n", i, x[i], N);
         ++j;
         pos[num_1++] = i;
         if (j == 3) {
@@ -199,11 +215,13 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
 
+printf("2.1~~~~~~~~~~~~~\n");
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
-    fprintf (stderr, "\n\nInitial frag_num: \t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));
+    fprintf (stderr, "\n\nInitial frag_num: \t\t\t\t%d\n", compare(origin, shape1, shape2, N));
 
     
+printf("2.2~~~~~~~~~~~~~\n");
     for ( i = 0; i < 8; ++i) { 
       f1[i] = myalloc(seg_num, int*);
       g1[i] = myalloc(seg_num, int*);
@@ -219,6 +237,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       }
     //one segment count
     // last segment may not 3 1s;
+printf("2.3~~~~~~~~~~~~~\n");
     int start = 0, end;
     for ( i = 0; i < seg_num - 1; ++i) {
       end = pos[i * 3 + 2] + 1;
@@ -249,6 +268,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       countHelp(x, start, end, cc, u, &f1[2][i], &g1[2][i]); 
       start = end;
     }
+printf("3~~~~~~~~~~~~~\n");
 /*
     //  print_one_seg();
     printf("the first segment\n");
@@ -322,11 +342,13 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
  // timeuse /= TIMES;
  // printf("time: %d us\n", timeuse);
   //Shape it
+printf("4~~~~~~~~~~~~~\n");
   MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
-  fprintf (stderr, "\nAfter ML Sampling frag_num: \t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));
+  fprintf (stderr, "\nAfter ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
 
+printf("5~~~~~~~~~~~~~\n");
   globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
-  fprintf (stderr, "\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(reference, L, shape1, shape2, N));
+  fprintf (stderr, "\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
 
 /*  
   for (int i = 0; i < N; ++i){
@@ -341,13 +363,11 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   /* cleanup */
   free (cc) ;
   free (shape1) ; free (shape2) ;
-  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   free(pos);
+  for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
   for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
   for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
   free(f1); free(g1); free(f2); free(g2);
-  for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
-  for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
 }
 
