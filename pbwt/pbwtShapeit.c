@@ -127,7 +127,6 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
-printf("1~~~~~~~~~~~~~\n");
   uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
   uchar **origin;
   uchar *x;                 /* use for current query */
@@ -178,9 +177,7 @@ printf("1~~~~~~~~~~~~~\n");
   for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
   
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
- 
-printf("2~~~~~~~~~~~~~\n");
-  
+
 //  struct timeval tstart, tend;
 //  gettimeofday( &tstart, NULL );
 
@@ -211,7 +208,6 @@ printf("2~~~~~~~~~~~~~\n");
 
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
-    fprintf (stderr, "\n\nInitial frag_num: \t\t\t\t%d\n", compare(origin, shape1, shape2, N));
     
     for ( i = 0; i < 8; ++i) { 
       f1[i] = myalloc(seg_num, int*);
@@ -258,7 +254,6 @@ printf("2~~~~~~~~~~~~~\n");
       countHelp(x, start, end, cc, u, &f1[2][i], &g1[2][i]); 
       start = end;
     }
-printf("3~~~~~~~~~~~~~\n");
 /*
     //  print_one_seg();
     printf("the first segment\n");
@@ -327,19 +322,22 @@ printf("3~~~~~~~~~~~~~\n");
 
   }
 
+  fprintf (stderr, "countTheMatch\n");
+  timeUpdate () ;
  // gettimeofday( &tend, NULL );
  // int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
  // timeuse /= TIMES;
  // printf("time: %d us\n", timeuse);
   //Shape it
-printf("4~~~~~~~~~~~~~\n");
+  fprintf (stderr, "MostLikelySampling\n");
   MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
   fprintf (stderr, "\nAfter ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
-
-printf("5~~~~~~~~~~~~~\n");
+  timeUpdate () ;
+  
+  fprintf (stderr, "globalSamplming\n");
   globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
   fprintf (stderr, "\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
-
+  timeUpdate () ;
 /*  
   for (int i = 0; i < N; ++i){
     printf("%u", reference[L * 2][i]);
