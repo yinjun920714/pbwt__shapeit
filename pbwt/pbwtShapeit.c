@@ -150,36 +150,16 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       for (j = 0; j < seg_num; ++j) {
         f1[i][j] = 0; g1[i][j] = M;
       }
+
     //one segment count
     // last segment may not 3 1s;
     int start = 0, end;
     for ( i = 0; i < seg_num - 1; ++i) {
       end = pos[i * 3 + 2] + 1;
-      //000
-      countHelp(x, start, end, cc, u, &f1[0][i], &g1[0][i]);
-      //001
-      x[pos[i * 3 + 2]] = 1;
-      countHelp(x, start, end, cc, u, &f1[1][i], &g1[1][i]);
-      //011
-      x[pos[i * 3 + 1]] = 1;
-      countHelp(x, start, end, cc, u, &f1[3][i], &g1[3][i]);    
-      //111
-      x[pos[i * 3 + 0]] = 1;
-      countHelp(x, start, end, cc, u, &f1[7][i], &g1[7][i]); 
-      //110
-      x[pos[i * 3 + 2]] = 0;
-      countHelp(x, start, end, cc, u, &f1[6][i], &g1[6][i]); 
-      //100
-      x[pos[i * 3 + 1]] = 0;
-      countHelp(x, start, end, cc, u, &f1[4][i], &g1[4][i]); 
-      //101
-      x[pos[i * 3 + 2]] = 1;
-      countHelp(x, start, end, cc, u, &f1[5][i], &g1[5][i]); 
-      //010
-      x[pos[i * 3 + 0]] = 0;
-      x[pos[i * 3 + 1]] = 1;
-      x[pos[i * 3 + 2]] = 0;
-      countHelp(x, start, end, cc, u, &f1[2][i], &g1[2][i]); 
+      for ( j = 0; j < 8; ++j) {
+        setSeq(x, pos, i, j);
+        countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
+      } 
       start = end;
     }
 
@@ -194,34 +174,10 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
     for ( i = 1; i < seg_num - 1; ++i) {
       end = pos[i * 3 + 2] + 1;
       for ( j = 0; j < 8; ++j){
-      x[pos[i * 3 + 0]] = 0; //initial
-      x[pos[i * 3 + 1]] = 0;
-      x[pos[i * 3 + 2]] = 0;
-      //000
-      countHelp(x, start, end, cc, u, &f2[0 + j * 8][i - 1], &g2[0 + j * 8][i - 1]);
-      //001
-      x[pos[i * 3 + 2]] = 1;
-      countHelp(x, start, end, cc, u, &f2[1 + j * 8][i - 1], &g2[1 + j * 8][i - 1]);
-      //011
-      x[pos[i * 3 + 1]] = 1;
-      countHelp(x, start, end, cc, u, &f2[3 + j * 8][i - 1], &g2[3 + j * 8][i - 1]);    
-      //111
-      x[pos[i * 3 + 0]] = 1;
-      countHelp(x, start, end, cc, u, &f2[7 + j * 8][i - 1], &g2[7 + j * 8][i - 1]); 
-      //110
-      x[pos[i * 3 + 2]] = 0;
-      countHelp(x, start, end, cc, u, &f2[6 + j * 8][i - 1], &g2[6 + j * 8][i - 1]); 
-      //100
-      x[pos[i * 3 + 1]] = 0;
-      countHelp(x, start, end, cc, u, &f2[4 + j * 8][i - 1], &g2[4 + j * 8][i - 1]); 
-      //101
-      x[pos[i * 3 + 2]] = 1;
-      countHelp(x, start, end, cc, u, &f2[5 + j * 8][i - 1], &g2[5 + j * 8][i - 1]); 
-      //010
-      x[pos[i * 3 + 0]] = 0;
-      x[pos[i * 3 + 1]] = 1;
-      x[pos[i * 3 + 2]] = 0;
-      countHelp(x, start, end, cc, u, &f2[2 + j * 8][i - 1], &g2[2 + j * 8][i - 1]); 
+        for (int idx = 0; idx < 8; ++idx) {
+          setSeq(x, pos, i, idx);
+          countHelp(x, start, end, cc, u, &f2[idx + j * 8][i - 1], &g2[idx + j * 8][i - 1]);
+        }
       }
       start = end;
     }
@@ -240,7 +196,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       f2[63 - index][i]++;  //for origin[1];
     }
 
-    /* print the count;
+    // print the count;
     // print_one_seg;
     printf("the first segment\n");
     for (i = 0; i < 8; ++i)
@@ -262,7 +218,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
           g2[8*j+7][i] - f2[8*j+7][i]);
       printf("\n\n");
     }
-    */
+    
   }
 
 
@@ -374,11 +330,6 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
     }
     Normalized(data, s + 1);
- 
-    for( i = 0; i < 8; ++i) 
-      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
-    printf ("\n");
-
   }
 
   free(totalCon);
