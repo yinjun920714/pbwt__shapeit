@@ -39,82 +39,8 @@ static int compare(uchar **origin, uchar *shape1, uchar *shape2, int N) {
       }  
     }
     return count;
-
-/* privious compare
-    int total1, total2;
-    int *fragment1, *fragment2;
-    fragment1 = myalloc(N, int);
-    fragment2 = myalloc(N, int);
-    total1 = 0; total2 = 0;
-    int count1 = 1;
-    int count2 = 1;
-    for (int i = 0; i < N; ++i) {
-      if (reference[L * 2][i] == shape1[i])
-        count1++;
-      else {
-        fragment1[total1++] = count1;
-        count1 = 1;
-      }
-
-      if (reference[L * 2 + 1][i] == shape1[i])
-        count2++;
-      else {
-        fragment2[total2++] = count2;
-        count2 = 1;
-      }
-    }
-    
-    for (int i = 0; i < N; ++i){
-      printf("%u", reference[L * 2][i]);
-      printf("%u", reference[L * 2 + 1][i]);
-      printf("%u", shape1[i]);
-      printf("%u", shape2[i]);
-      printf("\n");
-    } 
-    printf("\n");
-    
-
-    // printf("%*.*s\n", N, N, shape1);
-    free (fragment1) ;
-    free (fragment2) ;
-    return (total1 > total2 ? total2 : total1);
-
-    std::map<int, int> map1; //shape1 compare 2*L;
-    std::map<int, int> map2; //shape1 compare 2*L + 1;
-    std::map<int, int> ::iterator it;
-
-    int count1, count2;
-    count1 = 1; count2 = 1;
-    for (int i = 0; i < N; ++i) {
-      if (reference[L * 2][i] == shape1[i])
-        count1++;
-      else {
-        it = map1.find(count1);
-        if (it != map1.end())
-          map1[count1]++;
-        else
-          map1.insert(std::pair<int, int>(count1, 1));
-        count1 = 1;
-      }
-
-      if (reference[L * 2][i] == shape1[i])
-        count2++;
-      else {
-        it = map2.find(count2);
-        if (it != map2.end())
-          map2[count2]++;
-        else
-          map2.insert(std::pair<int, int>(count2, 1));
-        count2 = 1;
-      }
-    }
-    fprintf (stderr, "map1 size: %d\n", map1.size()) ;
-    fprintf (stderr, "map2 size: %d\n", map2.size()) ;
-
-    map1.clear();
-    map2.clear();
-*/
 }
+
 static void Normalized(double **data, int s) {
   double total;
   for ( int i = 0; i < 8; ++i)
@@ -178,19 +104,21 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
 
-//  struct timeval tstart, tend;
-//  gettimeofday( &tstart, NULL );
+  /* for time cal
+  struct timeval tstart, tend;
+  gettimeofday( &tstart, NULL );
+  */
 
   int t;  //multi_time
   int TIMES = 1;
   for (t = 0; t < TIMES; ++t) {
-    // L = rand()%(M/2); 
-    
-//    seg_num = 1;
-//    num_1 = 0;
-//    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
-//    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
-
+    /* for time repeat
+    L = rand()%(M/2); 
+    seg_num = 1;
+    num_1 = 0;
+    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+    */
     for ( i = 0; i < N; ++i)
       x[i] = origin[0][i] + origin[1][i];
     
@@ -254,13 +182,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       countHelp(x, start, end, cc, u, &f1[2][i], &g1[2][i]); 
       start = end;
     }
-/*
-    //  print_one_seg();
-    printf("the first segment\n");
-    for (i = 0; i < 8; ++i)
-      printf("%d\n", g1[i][0] - f1[i][0]);
-    printf("\n\n");
-*/
+
 
     //initial f2, g2
     for (i = 0; i < 64; ++i)
@@ -303,8 +225,30 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       }
       start = end;
     }
-/* print */ 
-   for ( i = 0; i < seg_num - 2; ++i) {
+   
+    //minus the f1,g1 by 1 for the origin sequence
+    for ( i = 0; i < seg_num - 1; ++i) {
+      int index = origin[0][pos[i * 3]] * 4 + origin[0][pos[i * 3 + 1]] * 2 + origin[0][pos[i * 3 + 2]];
+      f1[index][i]++;      //for origin[0];
+      f1[7 - index][i]++;  //for origin[1];
+    }
+
+    for ( i = 0; i < seg_num - 2; ++i) {
+      int index = origin[0][pos[i * 3]] * 32 + origin[0][pos[i * 3 + 1]] * 16 + origin[0][pos[i * 3 + 2]] * 8  //previous block
+                  + origin[0][pos[i * 3] + 3] * 4 + origin[0][pos[i * 3 + 4]] * 2 + origin[0][pos[i * 3 + 5]]; //current block
+      f2[index][i]++;      //for origin[0];
+      f2[63 - index][i]++;  //for origin[1];
+    }
+
+    /* print the count; */
+    /* print_one_seg;   */
+    printf("the first segment\n");
+    for (i = 0; i < 8; ++i)
+      printf("%d\n", g1[i][0] - f1[i][0]);
+    printf("\n\n");
+
+     /* print */ 
+    for ( i = 0; i < seg_num - 2; ++i) {
       printf("segment num\t%d\n", i + 2);
       printf("index\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",0,1,2,3,4,5,6,7);
       for (j = 0; j < 8; ++j)
@@ -319,9 +263,9 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
           g2[8*j+7][i] - f2[8*j+7][i]);
       printf("\n\n");
     }
-
   }
 
+/*
   fprintf (stderr, "countTheMatch\n");
   timeUpdate () ;
  // gettimeofday( &tend, NULL );
@@ -338,15 +282,6 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
   fprintf (stderr, "\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   timeUpdate () ;
-/*  
-  for (int i = 0; i < N; ++i){
-    printf("%u", reference[L * 2][i]);
-    printf("%u", reference[L * 2 + 1][i]);
-    printf("%u", shape1[i]);
-    printf("%u", shape2[i]);
-    printf("\n");
-  } 
-  printf("\n");
 */
   /* cleanup */
   free (cc) ;
@@ -444,31 +379,6 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
     printf ("\n");
 
   }
-/*
-  for( s = 0; s < seg_num - 2; ++s) {
-    for ( i = 0; i < 8; ++i)
-        totalCon[i] = (g1[i][s] - f1[i][s]);
-    for ( i = 0; i < 8; ++i) {
-      int maxIdx = 0;
-      double maxVal = (totalCon[0] * totalCon[7] == 0 ? 0 :
-                      data[0][s] * ((double)(g2[i][s]-f2[i][s])/totalCon[0]) 
-                      * data[7][s] * ((double)(g2[63 - i][s]-f2[63 - i][s])/totalCon[7]));
-      for ( j = 1; j < 8; ++j) {
-        double val = (totalCon[j] * totalCon[7 - j] == 0 ? 0 
-                      : data[j][s] * ((double)(g2[j * 8 + i][s]-f2[j * 8 + i][s])/totalCon[j]) 
-                      * data[7 - j][s] * ((double)(g2[(7 - j) * 8 + 7 - i][s]-f2[(7 - j) * 8 + 7 - i][s])/totalCon[7 - j]));
-        if (val > maxVal) { maxIdx = j; maxVal = val;} }
-      data[i][s + 1] = maxVal;
-      phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
-    }
-    Normalized(data, s + 1);
- 
-    for( i = 0; i < 8; ++i) 
-      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
-    printf ("\n");
-
-  }
-*/
 
   free(totalCon);
 
