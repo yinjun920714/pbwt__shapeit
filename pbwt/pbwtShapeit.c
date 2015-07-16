@@ -240,14 +240,13 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       f2[63 - index][i]++;  //for origin[1];
     }
 
-    /* print the count; */
-    /* print_one_seg;   */
+    /* print the count;
+    // print_one_seg;
     printf("the first segment\n");
     for (i = 0; i < 8; ++i)
       printf("%d\n", g1[i][0] - f1[i][0]);
     printf("\n\n");
-
-     /* print */ 
+    // print following 
     for ( i = 0; i < seg_num - 2; ++i) {
       printf("segment num\t%d\n", i + 2);
       printf("index\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",0,1,2,3,4,5,6,7);
@@ -263,15 +262,17 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
           g2[8*j+7][i] - f2[8*j+7][i]);
       printf("\n\n");
     }
+    */
   }
 
-/*
+
   fprintf (stderr, "countTheMatch\n");
   timeUpdate () ;
- // gettimeofday( &tend, NULL );
- // int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
- // timeuse /= TIMES;
- // printf("time: %d us\n", timeuse);
+  // gettimeofday( &tend, NULL );
+  // int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
+  // timeuse /= TIMES;
+  // printf("time: %d us\n", timeuse);
+ 
   //Shape it
   fprintf (stderr, "MostLikelySampling\n");
   MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
@@ -282,7 +283,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
   fprintf (stderr, "\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   timeUpdate () ;
-*/
+
   /* cleanup */
   free (cc) ;
   free (shape1) ; free (shape2) ;
