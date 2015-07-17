@@ -191,11 +191,18 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
 
     for ( i = 0; i < seg_num - 2; ++i) {
       int index = origin[0][pos[i * 3]] * 32 + origin[0][pos[i * 3 + 1]] * 16 + origin[0][pos[i * 3 + 2]] * 8  //previous block
-                  + origin[0][pos[i * 3] + 3] * 4 + origin[0][pos[i * 3 + 4]] * 2 + origin[0][pos[i * 3 + 5]]; //current block
+                  + origin[0][pos[i * 3 + 3]] * 4 + origin[0][pos[i * 3 + 4]] * 2 + origin[0][pos[i * 3 + 5]]; //current block
       f2[index][i]++;      //for origin[0];
       f2[63 - index][i]++;  //for origin[1];
     }
 
+    //print f1, g1
+    for (i = 0; i < seg_num - 1; ++i) {
+      printf("segment num\t%d\n", i+1);
+      for (j = 0; j < 8; ++j)
+        printf("%d\t", g1[j][i] - f1[j][i]);
+      printf("\n");
+    }
     // print the count;
     // print_one_seg;
     printf("the first segment\n");
