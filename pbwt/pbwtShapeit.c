@@ -1,6 +1,5 @@
 #include "pbwt.h"
 
-
 static void countHelp(uchar *x, int start, int end, int *cc, int **u, int *f, int *g) {
   for ( int k = start; k < end; ++k ) {
     if ((*f) < (*g)) {
@@ -49,6 +48,15 @@ static void Normalized(double **data, int s) {
     data[i][s] = data[i][s]/total;
 }
 
+static void addWeight(double **data, int s, double w) {
+  if (s == 34 ) {
+    printf("w = %f\n", w);
+    printf("w / 8 = %f\n", w/8);
+  }
+  for ( int i = 0; i < 8; ++i)
+    data[i][s] = w / 8 + (1 - w) * data[i][s];
+}
+
 void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segment */ 
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
@@ -66,6 +74,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   int num_1 = 0; /* for the num of 1 */
   uchar *shape1;  /* for the shape seq1 */
   uchar *shape2;  /* for the shape seq2 */
+  double w = 1.0 / M;
 
   /* build indexes */
   a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
@@ -238,14 +247,13 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
  
   //Shape it
   fprintf (stderr, "MostLikelySampling\n");
-  MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
-  fprintf (stderr, "\nAfter ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
+  MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  fprintf (stderr, "After ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
   timeUpdate () ;
   
   fprintf (stderr, "globalSamplming\n");
-  globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2) ;
-  fprintf (stderr, "\nAfter global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
-  timeUpdate () ;
+  globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
 
   /* cleanup */
   free (cc) ;
@@ -258,11 +266,11 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
 }
 
-void Sampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2){
+void Sampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
 
 
 }
-void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2){
+void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
   //MostLike
   int max_idx = 0;
   int prev1,prev2;
@@ -299,7 +307,7 @@ void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int se
   }
 }
 
-void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2){
+void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
   int i,j,s;
   double **data;
   data = myalloc(8, double* );
@@ -336,7 +344,13 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
       data[i][s + 1] = maxVal;
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
     }
+    addWeight(data, s + 1, w);
+    if (s != 33 )
     Normalized(data, s + 1);
+  
+    for( i = 0; i < 8; ++i) 
+      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
+    printf ("\n");
   }
 
   free(totalCon);

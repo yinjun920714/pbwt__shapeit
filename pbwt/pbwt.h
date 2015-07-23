@@ -210,9 +210,9 @@ void matchSequencesSweepSparse (PBWT *p, PBWT *q, int nSparse,
 /* pbwtShapeit.c - functions implemented by Jun Yin */
 
 void pbwtMatchCount (PBWT *p, int L) ;
-void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2) ;
-void Sampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2) ;
-void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2) ;
+void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
+void Sampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
+void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 
 /* pbwtImpute.c */
 
