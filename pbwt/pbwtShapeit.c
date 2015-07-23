@@ -72,7 +72,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   uchar *shape2;  /* for the shape seq2 */
   double w = 1.0 / M;
   
-  uchar **newHap = myalloc(N, uchar*) ; for (i = 0; i < N; ++i) newHap[i] = myalloc(2*L, uchar*);  
+  uchar **newHap = myalloc(2*L, uchar*) ; for (i = 0; i < 2*L; ++i) newHap[i] = myalloc(N, uchar*);  
 	
   /* build indexes */
   a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
@@ -259,14 +259,16 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
 
   //fprintf (stderr, "globalSamplming\n");
   globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-  for (i = 0; i < N; ++i)
-    newHap[i][2*t] = shape1[i];
-  for (i = 0; i < N; ++i)
-    newHap[i][2*t + 1] = shape2[i];
+  memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
+  memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   }
   
-  for (
+  for ( j = 0; j < N; ++j) {
+    for ( i = 0; i < 2*L; ++i)
+      printf("%u ", newHap[i][j]);
+    printf("\n");
+  }
   /* cleanup */
   free (cc) ;
   free (shape1) ; free (shape2) ;
