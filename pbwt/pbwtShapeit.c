@@ -101,11 +101,10 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
   pbwtCursorDestroy (up) ;
   
+
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
-  memcpy (origin[0], reference[2*L], N*sizeof(uchar));
-  memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
-  
-  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+
+//  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
   for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
   
@@ -128,7 +127,9 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
       for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
       for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
     }
-
+    memcpy (origin[0], reference[2*L], N*sizeof(uchar));
+    memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
+    
     for ( i = 0; i < N; ++i)
       x[i] = origin[0][i] + origin[1][i];
     
@@ -271,6 +272,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   }
   /* cleanup */
   free (cc) ;
+  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
