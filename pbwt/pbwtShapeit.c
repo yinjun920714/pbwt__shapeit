@@ -119,15 +119,18 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   */
 
   int t;  //multi_time
-  int TIMES = 1;
+  int TIMES = L;
   for (t = 0; t < TIMES; ++t) {
-    /* for time repeat
-    L = rand()%(M/2); 
+    // for time repeat
+    //L = rand()%(M/2); 
+    L = t;
     seg_num = 1;
     num_1 = 0;
-    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
-    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
-    */
+    if (t != 0){
+      for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+      for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+    }
+
     for ( i = 0; i < N; ++i)
       x[i] = origin[0][i] + origin[1][i];
     
@@ -206,6 +209,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
     }
 
     //print f1, g1
+    /*
     for (i = 0; i < seg_num - 1; ++i) {
       printf("segment num\t%d\n", i+1);
       for (j = 0; j < 8; ++j)
@@ -234,27 +238,40 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
           g2[8*j+7][i] - f2[8*j+7][i]);
       printf("\n\n");
     }
+    */
     
-  }
+  
 
 
-  fprintf (stderr, "countTheMatch\n");
-  timeUpdate () ;
+  //fprintf (stderr, "countTheMatch\n");
+  //timeUpdate () ;
   // gettimeofday( &tend, NULL );
   // int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
   // timeuse /= TIMES;
   // printf("time: %d us\n", timeuse);
  
   //Shape it
-  fprintf (stderr, "MostLikelySampling\n");
-  MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-  fprintf (stderr, "After ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
-  timeUpdate () ;
+  //fprintf (stderr, "MostLikelySampling\n");
+  //MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  //fprintf (stderr, "After ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
+  //timeUpdate () ;
   
-  fprintf (stderr, "globalSamplming\n");
-  globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-  fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
 
+
+
+  //fprintf (stderr, "globalSamplming\n");
+  globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  for (i = 0; i < N; ++i)
+    printf("%u ", shape1[i]);
+  printf("\n");
+  for (i = 0; i < N; ++i)
+    printf("%u ", shape1[i]);
+  printf("\n");
+
+  //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
+  
+
+  }
   /* cleanup */
   free (cc) ;
   free (shape1) ; free (shape2) ;
