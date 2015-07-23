@@ -49,10 +49,6 @@ static void Normalized(double **data, int s) {
 }
 
 static void addWeight(double **data, int s, double w) {
-  if (s == 34 ) {
-    printf("w = %f\n", w);
-    printf("w / 8 = %f\n", w/8);
-  }
   for ( int i = 0; i < 8; ++i)
     data[i][s] = w / 8 + (1 - w) * data[i][s];
 }
@@ -75,7 +71,9 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   uchar *shape1;  /* for the shape seq1 */
   uchar *shape2;  /* for the shape seq2 */
   double w = 1.0 / M;
-
+  
+  uchar **newHap = myalloc(N, uchar*) ; for (i = 0; i < N; ++i) newHap[i] = myalloc(2*L, uchar*);  
+	
   /* build indexes */
   a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
   d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
@@ -262,16 +260,13 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   //fprintf (stderr, "globalSamplming\n");
   globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
   for (i = 0; i < N; ++i)
-    printf("%u ", shape1[i]);
-  printf("\n");
+    newHap[i][2*t] = shape1[i];
   for (i = 0; i < N; ++i)
-    printf("%u ", shape1[i]);
-  printf("\n");
-
+    newHap[i][2*t + 1] = shape2[i];
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
-  
-
   }
+  
+  for (
   /* cleanup */
   free (cc) ;
   free (shape1) ; free (shape2) ;
@@ -365,9 +360,9 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
     if (s != 33 )
     Normalized(data, s + 1);
   
-    for( i = 0; i < 8; ++i) 
-      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
-    printf ("\n");
+//    for( i = 0; i < 8; ++i) 
+//      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
+//    printf ("\n");
   }
 
   free(totalCon);
