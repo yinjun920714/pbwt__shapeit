@@ -69,6 +69,11 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
           ch = fgetc(fp);  
         reference[i][j] = ch; 
       }
+for (int i = 0; i < 10; ++i){
+for (int j = 0; j < 10; ++j)
+fprintf(stderr, "%c\t", reference[i][j]);
+fprintf(stderr, "\n");
+}
   uchar **origin;
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
@@ -279,7 +284,7 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
   
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
-      printf("%u ", newHap[i][j]);
+      printf("%c ", newHap[i][j]);
     printf("\n");
   }
   /* cleanup */
