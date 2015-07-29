@@ -53,11 +53,22 @@ static void addWeight(double **data, int s, double w) {
     data[i][s] = w / 8 + (1 - w) * data[i][s];
 }
 
-void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segment */ 
+void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each segment */ 
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
-  if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
-  uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
+  //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  uchar **reference;
+  reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
+  uchar ch;
+  for (int j = 0; j < p->N; ++j)
+    for (int i = 0; i < p->M; ++i)
+      { 
+        ch = fgetc(fp);
+        while(ch == ' ' || ch == '\n')
+          ch = fgetc(fp);  
+        reference[i][j] = ch; 
+      }
   uchar **origin;
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
@@ -72,7 +83,7 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   uchar *shape2;  /* for the shape seq2 */
   double w = 1.0 / M;
   
-  uchar **newHap = myalloc(2*L, uchar*) ; for (i = 0; i < 2*L; ++i) newHap[i] = myalloc(N, uchar*);  
+  uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
 	
   /* build indexes */
   a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
@@ -116,7 +127,8 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   */
 
   int t;  //multi_time
-  int TIMES = L;
+  int TIMES = M/2;
+  int L;
   for (t = 0; t < TIMES; ++t) {
     // for time repeat
     //L = rand()%(M/2); 
@@ -266,13 +278,14 @@ void pbwtMatchCount (PBWT *p, int L) /* reporting the match number for each segm
   }
   
   for ( j = 0; j < N; ++j) {
-    for ( i = 0; i < 2*L; ++i)
+    for ( i = 0; i < M; ++i)
       printf("%u ", newHap[i][j]);
     printf("\n");
   }
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
   free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
