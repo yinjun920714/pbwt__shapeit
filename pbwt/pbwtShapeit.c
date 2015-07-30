@@ -67,13 +67,15 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
         ch = fgetc(fp);
         while(ch == ' ' || ch == '\n')
           ch = fgetc(fp);  
-        reference[i][j] = ch; 
+        reference[i][j] = ch -'0'; 
       }
-for (int i = 0; i < 10; ++i){
-for (int j = 0; j < 10; ++j)
-fprintf(stderr, "%c\t", reference[i][j]);
-fprintf(stderr, "\n");
-}
+/*
+  for (int j = 0; j < p->N; ++j) {
+    for (int i = 0; i < p->M; ++i)
+      printf("%u ", reference[i][j]);
+    printf("\n");
+  }
+*/
   uchar **origin;
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
@@ -281,10 +283,9 @@ fprintf(stderr, "\n");
   memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   }
-  
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
-      printf("%c ", newHap[i][j]);
+      printf("%u ", newHap[i][j]);
     printf("\n");
   }
   /* cleanup */
