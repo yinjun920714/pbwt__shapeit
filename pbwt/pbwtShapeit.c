@@ -357,8 +357,8 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
   for( i = 0; i < 8; ++i) {
     total += ( g1[i][0] - f1[i][0] ); }
   for( i = 0; i < 8; ++i) {
- //   data[i][0] = ( total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (g1[7 - i][0] - f1[7 - i][0])) / (total * total) ); }
-    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
+      data[i][0] = ( total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (g1[7 - i][0] - f1[7 - i][0])) / (total * total) ); }
+//    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
 
   Normalized(data, 0);
 
@@ -371,10 +371,10 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
     for ( i = 0; i < 8; ++i) {
       int maxIdx = 0;
       double maxVal = (totalCon[0] * totalCon[7] == 0 ? 0
-                      : data[0][s] * data[0][s] * ((double)(g2[i][s]-f2[i][s])/totalCon[0]) * ((double)(g2[63 - i][s]-f2[63 - i][s])/totalCon[7]));
+                      : data[0][s] * data[7][s] * ((double)(g2[i][s]-f2[i][s])/totalCon[0]) * ((double)(g2[63 - i][s]-f2[63 - i][s])/totalCon[7]));
       for ( j = 1; j < 8; ++j) {
         double val = (totalCon[j] * totalCon[7 - j] == 0 ? 0 
-                      : data[j][s] * data[j][s] * ((double)(g2[j * 8 + i][s]-f2[j * 8 + i][s])/totalCon[j]) * ((double)(g2[(7 - j) * 8 + 7 - i][s]-f2[(7 - j) * 8 + 7 - i][s])/totalCon[7 - j]));
+                      : data[j][s] * data[7 - j][s] * ((double)(g2[j * 8 + i][s]-f2[j * 8 + i][s])/totalCon[j]) * ((double)(g2[(7 - j) * 8 + 7 - i][s]-f2[(7 - j) * 8 + 7 - i][s])/totalCon[7 - j]));
         if (val > maxVal) { maxIdx = j; maxVal = val;} }
       data[i][s + 1] = maxVal;
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
