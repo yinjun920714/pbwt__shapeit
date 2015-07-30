@@ -12,18 +12,24 @@ static void countHelp(uchar *x, int start, int end, int *cc, int **u, int *f, in
   }
 }
 
-static void setSeq(uchar *dir, int *pos, int seq, int index) {
+static void setSeq(uchar *dir, int *pos, int seq, int index, int digit) {
   if( index > 7 || index < 0){
     printf("error\n");
     return;
   }
-
-  dir[pos[seq * 3]] = index/4 > 0 ? 1 : 0; 
-  index %= 4;
-  dir[pos[seq * 3 + 1]] = index/2 > 0 ? 1 : 0;
-  index %= 2;
-  dir[pos[seq * 3 + 2]] = index > 0 ? 1 : 0;
-
+  if (digit == 3){
+    dir[pos[seq * 3]] = index/4 > 0 ? 1 : 0; 
+    index %= 4;
+    dir[pos[seq * 3 + 1]] = index/2 > 0 ? 1 : 0;
+    index %= 2;
+    dir[pos[seq * 3 + 2]] = index > 0 ? 1 : 0;
+  } else if (digit == 2){
+    dir[pos[seq * 3]] = index/2 > 0 ? 1 : 0;
+    index %= 2;
+    dir[pos[seq * 3 + 1]] = index > 0 ? 1 : 0;
+  } else if (digit == 1){
+    dir[pos[seq * 3]] = index > 0 ? 1 : 0;
+  }
   return;
 }
 
@@ -163,10 +169,11 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
       }
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
-
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
     
+    int last_1 = num_1 - (seg_num - 1) * 3;    //remain 1, not whole block
+
     for ( i = 0; i < 8; ++i) { 
       f1[i] = myalloc(seg_num, int*);
       g1[i] = myalloc(seg_num, int*);
@@ -187,16 +194,25 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
     for ( i = 0; i < seg_num - 1; ++i) {
       end = pos[i * 3 + 2] + 1;
       for ( j = 0; j < 8; ++j) {
-        setSeq(x, pos, i, j);
+        setSeq(x, pos, i, j, 3);
         countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
       } 
       start = end;
     }
-
+    //last 1 block;
+    if (last_1 > 0) {
+      end = N + 1;
+      for ( j = 0; j < (last_1 == 1) ? 2 : 4; ++j) {
+        setSeq(x, pos, i, j, last_1);
+        countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
+      } 
+      for ( j = (last_1 == 1) ? 2 : 4; j < 8; ++j)
+        g1[j][i] = 0;
+    }
 
     //initial f2, g2
     for (i = 0; i < 64; ++i)
-      for (j = 0; j < seg_num; ++j) {
+      for (j = 0; j <= seg_num; ++j) {
         f2[i][j] = f1[i/8][j]; 
         g2[i][j] = g1[i/8][j];
       }
@@ -205,13 +221,22 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
       end = pos[i * 3 + 2] + 1;
       for ( j = 0; j < 8; ++j){
         for (int idx = 0; idx < 8; ++idx) {
-          setSeq(x, pos, i, idx);
+          setSeq(x, pos, i, idx, 3);
           countHelp(x, start, end, cc, u, &f2[idx + j * 8][i - 1], &g2[idx + j * 8][i - 1]);
         }
       }
       start = end;
     }
-   
+    if (last_1 > 0) {
+      end = N + 1;
+      for ( j = 0; j < 8; ++j) {
+        for (int idx = 0; idx < (last_1 ==1) ? 2 : 4; ++idx){
+          setSeq(x, pos, i, idx, last_1);
+          countHelp(x, start, end, cc, u, &f2[idx + j * 8][i - 1], &g2[idx + j * 8][i - 1]);
+        }
+      } 
+    }
+
     //minus the f1,g1 by 1 for the origin sequence
     for ( i = 0; i < seg_num - 1; ++i) {
       int index = origin[0][pos[i * 3]] * 4 + origin[0][pos[i * 3 + 1]] * 2 + origin[0][pos[i * 3 + 2]];
@@ -278,11 +303,12 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
 
 
   //fprintf (stderr, "globalSamplming\n");
-  globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w, last_1) ;
   memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
   memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   }
+
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       printf("%u ", newHap[i][j]);
@@ -320,8 +346,8 @@ void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int se
   prev1 = max_idx;
   prev2 = 7 - prev1;
   //set shape1, shape2 to be prev1, prev2;
-  setSeq(shape1, pos, 0, prev1);
-  setSeq(shape2, pos, 0, prev2);
+  setSeq(shape1, pos, 0, prev1, 3);
+  setSeq(shape2, pos, 0, prev2, 3);
 
   for ( s = 0; s < seg_num - 2; s++) {
     max_idx = 0;
@@ -337,12 +363,12 @@ void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int se
     prev1 = max_idx;
     prev2 = 7 - prev1;
     //set shape1, shape2 to be prev1, prev2;
-    setSeq(shape1, pos, s + 1, prev1);
-    setSeq(shape2, pos, s + 1, prev2);
+    setSeq(shape1, pos, s + 1, prev1, 3);
+    setSeq(shape2, pos, s + 1, prev2, 3);
   }
 }
 
-void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
+void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w, int last_1){
   int i,j,s;
   double **data;
   data = myalloc(8, double* );
@@ -380,38 +406,60 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
     }
     addWeight(data, s + 1, w);
-    if (s != 33 )
-    Normalized(data, s + 1);
-  
+    Normalized(data, s + 1); 
 //    for( i = 0; i < 8; ++i) 
 //      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
 //    printf ("\n");
   }
-
+  
+  //last 1 block 
+  if (last_1 > 0) {
+    int event = (last_1 == 1 ? 2 : 4);
+    for ( i = 0; i < 8; ++i)
+        totalCon[i] = (g1[i][s] - f1[i][s]);
+    for ( i = 0; i < 8; ++i) {
+      int maxIdx = 0;
+      double maxVal = (totalCon[0] * totalCon[7] == 0 ? 0
+                      : data[0][s] * data[0][s] * ((double)(g2[i][s]-f2[i][s])/totalCon[0]) * ((double)(g2[(last_1 == 1) ? 15 : 31 - i][s]-f2[(last_1 == 1) ? 15 : 31 - i][s])/totalCon[7]));
+      for ( j = 1; j < event; ++j) {
+        double val = (totalCon[j] * totalCon[7 - j] == 0 ? 0 
+                      : data[j][s] * data[j][s] * ((double)(g2[j * 8 + i][s]-f2[j * 8 + i][s])/totalCon[j]) * ((double)(g2[(event- 1 - j) * 8 + event - 1 - i][s]-f2[(event - 1 - j) * 8 + event - 1 - i][s])/totalCon[event - 1 - j]));
+        if (val > maxVal) { maxIdx = j; maxVal = val;} }
+      data[i][s + 1] = maxVal;
+      phis[i][s + 1] = maxIdx;    
+    }
+    addWeight(data, s + 1, w);
+    Normalized(data, s + 1); 
+  }
+  
   free(totalCon);
 
   // backtrack path
   int *path;
   path = myalloc(seg_num, int);
-  double maxData = data[0][seg_num - 2];
-  path[seg_num - 2] = 0;
+  double maxData = data[0][seg_num - 1];
+  path[seg_num - 1] = 0;
 
   for ( i = 1; i < 8; ++i) {
-    if ( maxData < data[i][seg_num - 2]) {
-      maxData = data[i][seg_num - 2];
-      path[seg_num - 2] = i; 
+    if ( maxData < data[i][seg_num - 1]) {
+      maxData = data[i][seg_num - 1];
+      path[seg_num - 1] = i; 
     }
   }
 
-  for ( s = seg_num - 3; s >= 0; --s) {
+  for ( s = seg_num - 2; s >= 0; --s) {
     path[s] = phis[path[s + 1]][s + 1];
   }
 
   for ( s = 0; s < seg_num - 1; ++s) {
-    setSeq(shape1, pos, s, path[s]);
-    setSeq(shape2, pos, s, 7 - path[s]);
+    setSeq(shape1, pos, s, path[s], 3);
+    setSeq(shape2, pos, s, 7 - path[s], 3);
   }
-  
+  if (last_1 > 0) {
+    setSeq(shape1, pos, s, path[s], last_1);
+    setSeq(shape2, pos, s, (last_1 == 1 ? 1 : 3) - path[s], last_1);
+  }
+
   free(path);
   for (i = 0 ; i < 8 ; ++i) free(data[i]) ; free (data) ;
   for (i = 0 ; i < 8 ; ++i) free(phis[i]) ; free (phis) ;
