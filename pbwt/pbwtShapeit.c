@@ -91,7 +91,7 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
   double w = 1.0 / M;
   
   uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
-	
+  
   /* build indexes */
   a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
   d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
