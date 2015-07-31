@@ -372,11 +372,11 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
         totalCon[i] = (g1[i][s] - f1[i][s]);
     for ( i = 0; i < 8; ++i) {
       int maxIdx = 0;
-      double maxVal = data[0][s] * ((double)(g2[i][s] - f2[i][s] + 1.0/8) / (totalCon[0] + 1)) 
-                      * data[7][s] * ((double)(g2[63 - i][s] - f2[63 - i][s] + 1.0/8) / (totalCon[7] + 1));
+      double maxVal = data[0][s] * ((double)(g2[i][s] - f2[i][s] + 0.01/8) / (totalCon[0] + 0.01)) 
+                      * data[7][s] * ((double)(g2[63 - i][s] - f2[63 - i][s] + 0.01/8) / (totalCon[7] + 0.01));
       for ( j = 1; j < 8; ++j) {
-        double val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1) + 1))
-                      * data[7 - j][s] * ((double)(g2[(7 - j) * 8 + 7 - i][s] - f2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (totalCon[7 - j] + 1));
+        double val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 0.01/8) / (totalCon[j] + 1) + 0.01))
+                      * data[7 - j][s] * ((double)(g2[(7 - j) * 8 + 7 - i][s] - f2[(7 - j) * 8 + 7 - i][s] + 0.01/8) / (totalCon[7 - j] + 0.01));
         if (val > maxVal) { maxIdx = j; maxVal = val;} }
       data[i][s + 1] = maxVal;
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
