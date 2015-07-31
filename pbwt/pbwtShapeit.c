@@ -283,11 +283,13 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
   memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   }
+  
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       printf("%u ", newHap[i][j]);
     printf("\n");
   }
+  
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
@@ -370,21 +372,22 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
         totalCon[i] = (g1[i][s] - f1[i][s]);
     for ( i = 0; i < 8; ++i) {
       int maxIdx = 0;
-      double maxVal = (totalCon[0] * totalCon[7] == 0 ? 0
-                      : data[0][s] * data[7][s] * ((double)(g2[i][s]-f2[i][s]+1.0/8)/(totalCon[0]+1)) * ((double)(g2[63 - i][s]-f2[63 - i][s]+1.0/8)/(totalCon[7]+1)));
+      double maxVal = data[0][s] * ((double)(g2[i][s] - f2[i][s] + 1.0/8) / (totalCon[0] + 1)) 
+                      * data[7][s] * ((double)(g2[63 - i][s] - f2[63 - i][s] + 1.0/8) / (totalCon[7] + 1));
       for ( j = 1; j < 8; ++j) {
-        double val = (totalCon[j] * totalCon[7 - j] == 0 ? 0 
-                      : data[j][s] * data[7 - j][s] * ((double)(g2[j * 8 + i][s]-f2[j * 8 + i][s]+1.0/8)/(totalCon[j]+1)) * ((double)(g2[(7 - j) * 8 + 7 - i][s]-f2[(7 - j) * 8 + 7 - i][s]+1.0/8)/(totalCon[7 - j]+1)));
+        double val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1) + 1))
+                      * data[7 - j][s] * ((double)(g2[(7 - j) * 8 + 7 - i][s] - f2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (totalCon[7 - j] + 1));
         if (val > maxVal) { maxIdx = j; maxVal = val;} }
       data[i][s + 1] = maxVal;
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
     }
   //  addWeight(data, s + 1, w);
     Normalized(data, s + 1);
-  
-//    for( i = 0; i < 8; ++i) 
-//      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
-//    printf ("\n");
+  /*
+    for( i = 0; i < 8; ++i) 
+      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
+    printf ("\n");
+  */
   }
 
   free(totalCon);
