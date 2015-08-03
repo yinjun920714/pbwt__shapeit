@@ -359,7 +359,7 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
   for( i = 0; i < 8; ++i) {
     total += ( g1[i][0] - f1[i][0] ); }
   for( i = 0; i < 8; ++i) {
-    data[i][0] = (double)((g1[i][0] - f1[i][0]) * (g1[7 - i][0] - f1[7 - i][0])) / (total * total); }
+    data[i][0] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (g1[7 - i][0] - f1[7 - i][0])) / (total * total)); }
 //    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
   addWeight(data, 0, w);
   Normalized(data, 0);
