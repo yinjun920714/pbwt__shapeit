@@ -53,6 +53,17 @@ static void addWeight(double **data, int s, double w) {
     data[i][s] = w / 8 + (1 - w) * data[i][s];
 }
 
+//must used after normalized data.
+static int randomChoose(double **data, int s){
+  for (int i = 1; i < 8; ++i)
+    data[i][s] += data[i - 1][s];
+  double num = rand() * 1.0;
+  for (int i = 6; i >= 0; --i)
+    if (num >= RAND_MAX * data[i][s])
+      return i + 1;
+  return 0;
+}
+
 void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each segment */ 
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
@@ -278,7 +289,7 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
 
 
   //fprintf (stderr, "globalSamplming\n");
-  globalOptimalSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  viterbiSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
   memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
   memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
@@ -344,7 +355,7 @@ void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int se
   }
 }
 
-void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
+void viterbiSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
   int i,j,s;
   double **data;
   data = myalloc(8, double* );
@@ -408,6 +419,87 @@ void globalOptimalSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
   for ( s = seg_num - 3; s >= 0; --s) {
     path[s] = phis[path[s + 1]][s + 1];
   }
+
+  for ( s = 0; s < seg_num - 1; ++s) {
+    setSeq(shape1, pos, s, path[s]);
+    setSeq(shape2, pos, s, 7 - path[s]);
+  }
+  
+  free(path);
+  for (i = 0 ; i < 8 ; ++i) free(data[i]) ; free (data) ;
+  for (i = 0 ; i < 8 ; ++i) free(phis[i]) ; free (phis) ;
+}
+
+void viterbiRandomSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
+  int i,j,s;
+  double **data;
+  data = myalloc(8, double* );
+  for ( i = 0; i < 8; ++i ) {
+    data[i] = myalloc(seg_num, double*); }
+  int **phis;
+  phis = myalloc(8, int* );
+  for ( i = 0; i < 8; ++i ) {
+    phis[i] = myalloc(seg_num, int*); }
+
+  int total = 0;
+  for( i = 0; i < 8; ++i) {
+    total += ( g1[i][0] - f1[i][0] ); }
+  for( i = 0; i < 8; ++i) {
+    data[i][0] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (g1[7 - i][0] - f1[7 - i][0])) / (total * total)); }
+//    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
+  addWeight(data, 0, w);
+  Normalized(data, 0);
+
+  int *totalCon;
+  int prev;
+  totalCon = myalloc(8, int);
+  for( s = 0; s < seg_num - 2; ++s) {
+    for ( i = 0; i < 8; ++i)
+        totalCon[i] = (g1[i][s] - f1[i][s]);
+    for ( i = 0; i < 8; ++i) {
+      int maxIdx = 0;
+      double maxVal = data[0][s] * ((double)(g2[i][s] - f2[i][s] + 1.0/8) / (totalCon[0] + 1)) 
+                      * data[7][s] * ((double)(g2[63 - i][s] - f2[63 - i][s] + 1.0/8) / (totalCon[7] + 1));
+      for ( j = 1; j < 8; ++j) {
+        double val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1))
+                      * data[7 - j][s] * ((double)(g2[(7 - j) * 8 + 7 - i][s] - f2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (totalCon[7 - j] + 1));
+        if (val > maxVal) { maxIdx = j; maxVal = val;} }
+      data[i][s + 1] = maxVal;
+      phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
+    }
+    addWeight(data, s + 1, w);
+    Normalized(data, s + 1);
+  /*
+    for( i = 0; i < 8; ++i) 
+      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
+    printf ("\n");
+  */
+  }
+
+  free(totalCon);
+
+  // backtrack path
+  int *path;
+  path = myalloc(seg_num, int);
+  for ( s = seg_num - 2; s >=0; s--){
+    path[s] = randomChoose(data, s);
+  }
+
+  /*
+  double maxData = data[0][seg_num - 2];
+  path[seg_num - 2] = 0;
+
+  for ( i = 1; i < 8; ++i) {
+    if ( maxData < data[i][seg_num - 2]) {
+      maxData = data[i][seg_num - 2];
+      path[seg_num - 2] = i; 
+    }
+  }
+
+  for ( s = seg_num - 3; s >= 0; --s) {
+    path[s] = phis[path[s + 1]][s + 1];
+  }
+  */
 
   for ( s = 0; s < seg_num - 1; ++s) {
     setSeq(shape1, pos, s, path[s]);
