@@ -291,7 +291,7 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
 
 
   //fprintf (stderr, "globalSamplming\n");
-  viterbiSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  viterbiRandomSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
   memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
   memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
