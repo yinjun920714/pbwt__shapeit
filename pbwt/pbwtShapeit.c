@@ -82,13 +82,13 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
           ch = fgetc(fp);  
         reference[i][j] = ch -'0'; 
       }
-/*
+  /*
   for (int j = 0; j < p->N; ++j) {
     for (int i = 0; i < p->M; ++i)
       printf("%u ", reference[i][j]);
     printf("\n");
   }
-*/
+  */
   uchar **origin;
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
@@ -135,7 +135,7 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
 
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
 
-//  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  //  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
   for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
   
@@ -307,6 +307,254 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
+  free (shape1) ; free (shape2) ;
+  free(pos);
+  for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
+  for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+  for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+  free(f1); free(g1); free(f2); free(g2);
+  for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
+}
+
+void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each segment */ 
+{
+  if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
+  //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
+  //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  uchar **reference;
+  reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
+  uchar ch;
+  for (int j = 0; j < p->N; ++j)
+    for (int i = 0; i < p->M; ++i)
+      { 
+        ch = fgetc(fp);
+        while(ch == ' ' || ch == '\n')
+          ch = fgetc(fp);  
+        reference[i][j] = ch -'0'; 
+      }
+/*
+  for (int j = 0; j < p->N; ++j) {
+    for (int i = 0; i < p->M; ++i)
+      printf("%u ", reference[i][j]);
+    printf("\n");
+  }
+*/
+  uchar **origin;
+  uchar *x;                 /* use for current query */
+  PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
+  int **a, **d, **u ;   /* stored indexes */
+  int **f1, **g1 ;     /* start of match, and pbwt interval as in algorithm 5 */
+  int **f2, **g2 ;    /* next versions of the above, e' etc in algorithm 5 */
+  int i, j, k, N = p->N, M = p->M ;
+  int s, seg_num = 1; /* for the segment number and current segment */
+  int *pos; /* for the 1 position for ref */
+  int num_1 = 0; /* for the num of 1 */
+  uchar *shape1;  /* for the shape seq1 */
+  uchar *shape2;  /* for the shape seq2 */
+  int **seg;      /* store the seg info */
+  double w = 1.0 / M;
+  
+  uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
+  
+  /* build indexes */
+  a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
+  d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
+  u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
+  x = myalloc (N, uchar*) ; 
+  pos = myalloc (N, int*) ;
+  f1 = myalloc (8, int*);
+  g1 = myalloc (8, int*);
+  f2 = myalloc (64, int*);
+  g2 = myalloc (64, int*);
+  int *cc = myalloc (p->N, int) ;
+  seg = myalloc (10, int *) ; for (i = 0; i < 10; ++i) seg[i] = myalloc (M/3 + 1, int);
+
+  shape1 = myalloc (N, uchar);
+  shape2 = myalloc (N, uchar);
+
+  for (k = 0 ; k < N ; ++k)
+    { memcpy (a[k], up->a, M*sizeof(int)) ;
+      memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
+      cc[k] = up->c ;
+      pbwtCursorCalculateU (up) ;
+      memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
+      pbwtCursorForwardsReadAD (up, k) ;
+    }
+  memcpy (a[k], up->a, M*sizeof(int)) ;
+  memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
+  pbwtCursorDestroy (up) ;
+  
+
+  origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
+
+//  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
+  for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
+  
+  fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
+
+  /* for time cal
+  struct timeval tstart, tend;
+  gettimeofday( &tstart, NULL );
+  */
+
+  int t;  //multi_time
+  int TIMES = M/2;
+  int L;
+  for (t = 0; t < TIMES; ++t) {
+    // for time repeat
+    //L = rand()%(M/2); 
+    L = t;
+    seg_num = 1;
+    num_1 = 0;
+    if (t != 0){
+      for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+      for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+    }
+    memcpy (origin[0], reference[2*L], N*sizeof(uchar));
+    memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
+    
+    for ( i = 0; i < N; ++i)
+      x[i] = origin[0][i] + origin[1][i];
+    
+    for ( i = 0, j = 0; i < N; ++i) {
+      if (x[i] == 1) {
+        pos[num_1++] = i;
+      }
+      x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
+    }
+
+    memcpy (shape1, x, N*sizeof(uchar)) ;
+    memcpy (shape2, x, N*sizeof(uchar)) ;
+    
+    for ( i = 0; i < 8; ++i) { 
+      f1[i] = myalloc(M/3 + 1, int*);
+      g1[i] = myalloc(M/3 + 1, int*);
+    }
+    for ( i = 0; i < 64; ++i) { 
+      f2[i] = myalloc(M/3 + 1, int*);
+      g2[i] = myalloc(M/3 + 1, int*);
+    }
+    //initial f1,g1
+    for (i = 0; i < 8; ++i)
+      for (j = 0; j < M/3 + 1; ++j) {
+        f1[i][j] = 0; g1[i][j] = M;
+      }
+
+    //one segment count
+    // last segment may not 3 1s;
+    int start = 0, end;
+    for ( i = 0; i < seg_num - 1; ++i) {
+      end = pos[i * 3 + 2] + 1;
+      for ( j = 0; j < 8; ++j) {
+        setSeq(x, pos, i, j);
+        countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
+      } 
+      start = end;
+    }
+
+
+    //initial f2, g2
+    for (i = 0; i < 64; ++i)
+      for (j = 0; j < seg_num; ++j) {
+        f2[i][j] = f1[i/8][j]; 
+        g2[i][j] = g1[i/8][j];
+      }
+    start = pos[2] + 1;  
+    for ( i = 1; i < seg_num - 1; ++i) {
+      end = pos[i * 3 + 2] + 1;
+      for ( j = 0; j < 8; ++j){
+        for (int idx = 0; idx < 8; ++idx) {
+          setSeq(x, pos, i, idx);
+          countHelp(x, start, end, cc, u, &f2[idx + j * 8][i - 1], &g2[idx + j * 8][i - 1]);
+        }
+      }
+      start = end;
+    }
+   
+    //minus the f1,g1 by 1 for the origin sequence
+    for ( i = 0; i < seg_num - 1; ++i) {
+      int index = origin[0][pos[i * 3]] * 4 + origin[0][pos[i * 3 + 1]] * 2 + origin[0][pos[i * 3 + 2]];
+      f1[index][i]++;      //for origin[0];
+      f1[7 - index][i]++;  //for origin[1];
+    }
+
+    for ( i = 0; i < seg_num - 2; ++i) {
+      int index = origin[0][pos[i * 3]] * 32 + origin[0][pos[i * 3 + 1]] * 16 + origin[0][pos[i * 3 + 2]] * 8  //previous block
+                  + origin[0][pos[i * 3 + 3]] * 4 + origin[0][pos[i * 3 + 4]] * 2 + origin[0][pos[i * 3 + 5]]; //current block
+      f2[index][i]++;      //for origin[0];
+      f2[63 - index][i]++;  //for origin[1];
+    }
+
+    //print f1, g1
+    /*
+    for (i = 0; i < seg_num - 1; ++i) {
+      printf("segment num\t%d\n", i+1);
+      for (j = 0; j < 8; ++j)
+        printf("%d\t", g1[j][i] - f1[j][i]);
+      printf("\n");
+    }
+    // print the count;
+    // print_one_seg;
+    printf("the first segment\n");
+    for (i = 0; i < 8; ++i)
+      printf("%d\n", g1[i][0] - f1[i][0]);
+    printf("\n\n");
+    // print following 
+    for ( i = 0; i < seg_num - 2; ++i) {
+      printf("segment num\t%d\n", i + 2);
+      printf("index\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",0,1,2,3,4,5,6,7);
+      for (j = 0; j < 8; ++j)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", j,
+          g2[8*j+0][i] - f2[8*j+0][i],
+          g2[8*j+1][i] - f2[8*j+1][i],
+          g2[8*j+2][i] - f2[8*j+2][i],
+          g2[8*j+3][i] - f2[8*j+3][i],
+          g2[8*j+4][i] - f2[8*j+4][i],
+          g2[8*j+5][i] - f2[8*j+5][i],
+          g2[8*j+6][i] - f2[8*j+6][i],
+          g2[8*j+7][i] - f2[8*j+7][i]);
+      printf("\n\n");
+    }
+    */
+    
+  
+
+
+  //fprintf (stderr, "countTheMatch\n");
+  //timeUpdate () ;
+  // gettimeofday( &tend, NULL );
+  // int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
+  // timeuse /= TIMES;
+  // printf("time: %d us\n", timeuse);
+ 
+  //Shape it
+  //fprintf (stderr, "MostLikelySampling\n");
+  //MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  //fprintf (stderr, "After ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
+  //timeUpdate () ;
+  
+
+
+
+  //fprintf (stderr, "globalSamplming\n");
+  viterbiRandomSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
+  memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
+  //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
+  }
+  
+  for ( j = 0; j < N; ++j) {
+    for ( i = 0; i < M; ++i)
+      printf("%u ", newHap[i][j]);
+    printf("\n");
+  }
+  
+  /* cleanup */
+  free (cc) ;
+  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
+  for (j = 0 ; j < 10; ++j) free(seg[i]) ; free (seg);
   free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
