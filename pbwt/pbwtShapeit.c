@@ -12,6 +12,22 @@ static void countHelp(uchar *x, int start, int end, int *cc, int **u, int *f, in
   }
 }
 
+static int countHelp2(uchar *x, int start, int end, int *cc, int **u, int ini_f, int ini_g, int *f, int *g) {
+  (*f) = ini_f;
+  (*g) = ini_g;
+  for ( int k = start; k < end; ++k ) {
+    if ((*f) < (*g)) {
+      (*f) = x[k] ? cc[k] + ((*f) - u[k][(*f)]) : u[k][(*f)];
+      (*g) = x[k] ? cc[k] + ((*g) - u[k][(*g)]) : u[k][(*g)]; 
+    } else {
+      (*f) = 0; (*g) = 0;
+      return 1;
+    } 
+  }
+  
+  return (*f) < (*g) ? 0 : 1;
+}
+
 static void setSeq(uchar *dir, int *pos, int seq, int index) {
   if( index > 7 || index < 0){
     printf("error\n");
@@ -342,13 +358,13 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
           ch = fgetc(fp);  
         reference[i][j] = ch -'0'; 
       }
-/*
+  /*
   for (int j = 0; j < p->N; ++j) {
     for (int i = 0; i < p->M; ++i)
       printf("%u ", reference[i][j]);
     printf("\n");
   }
-*/
+  */
   uchar **origin;
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
@@ -397,7 +413,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
 
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
 
-//  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  //  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
   for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
   
@@ -446,54 +462,64 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       g2[i] = myalloc(M/3 + 1, int*);
     }
     //initial f1,g1
-    for (i = 0; i < 8; ++i)
-      for (j = 0; j < M/3 + 1; ++j) {
+
         f1[i][j] = 0; g1[i][j] = M;
-      }
 
     //one segment count
-    // last segment may not 3 1s;
     int start = 0, end;
-    for ( i = 0; i < seg_num - 1; ++i) {
-      end = pos[i * 3 + 2] + 1;
-      for ( j = 0; j < 8; ++j) {
-        setSeq(x, pos, i, j);
-        countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
-      } 
-      start = end;
-    }
-
     s = 0;
     int idx = 0;
-    int count;
-    
-    for ( i = 0; i < M; ++i) {
+    int count, new_count;
+    int tmp_f1[8];
+    int tmp_g1[8];
+    int idx1, idx2;
+    for ( i = 0; i < num_1;) {
       count = 0;
-      seg[8][s] = 0;
-      seg[9][s] = 2;
+      seg[8][s] = i;
+      seg[9][s] = i + 2;
+      end = pos[seg[9][s]] + 1;
       for ( j = 0; j < 8; ++j) {
-        setSeq(x, pos, i, j);
-        countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
-        if (g1[j][i] - f1[j][i] > 0)
+        setSeq2(x, pos, seg[8][s], seg[9][s], j);
+        seg[count][s] = j; f1[count][s] = 0; g1[count][s] = M;
+        countHelp(x, start, end, cc, u, &f1[count][s], &g1[count][s]);
+        if (g1[count][s] - f1[count][s] > 0)
           count++;
       }
-      //j = 2;
+
       while(count < 5) {
-        j++;
+        new_count = 0;
+        if (seg[9][s] < num_1)
+          seg[9][s]++;
+        else 
+          break;  
+        
         for (int ii = 0; ii < count; ++ii) {
           idx1 = seg[ii][s] << 1;
-          idx2 = seg[ii][s] << 1 + 1;
+          idx2 = (seg[ii][s] << 1) + 1;
+          
           setSeq2(x, pos, i, j, idx1);
-          countHelp();
-          setSeq2();
-          countHelp();
+          if (!countHelp2(x, pos[seg[8][s]], pos[seg[9][s]] + 1, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+            seg[new_count++][s] = idx1;
+          }
+
+          setSeq2(x, pos, i, j, idx2);
+          if (!countHelp2(x, pos[seg[8][s]], pos[seg[9][s]] + 1, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+            seg[new_count++][s] = idx2;  
+          }
         }
+
+        for (int ii = 0; ii < new_count; ++ii) {
+          f1[ii][s] = tmp_f1[ii];
+          g1[ii][s] = tmp_g1[ii];
+        }
+        count = new_count;
       }
-
-
+      start = pos[seg[9][s]] + 1;
+      i = seg[9][s] + 1;
+      s++;
     }
 
-
+    seg_num = s;
     //initial f2, g2
     for (i = 0; i < 64; ++i)
       for (j = 0; j < seg_num; ++j) {
@@ -661,7 +687,7 @@ void viterbiSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_n
     total += ( g1[i][0] - f1[i][0] ); }
   for( i = 0; i < 8; ++i) {
     data[i][0] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (g1[7 - i][0] - f1[7 - i][0])) / (total * total)); }
-//    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
+  //    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
   addWeight(data, 0, w);
   Normalized(data, 0);
 
