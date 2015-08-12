@@ -27,6 +27,14 @@ static void setSeq(uchar *dir, int *pos, int seq, int index) {
   return;
 }
 
+static void setSeq2(uchar *dir, int *pos, int start, int end, int index) {
+  for (int bits = end - start; bits >= 0; bits--) {
+    dir[pos[start++]] = index / (1<<bits) > 0 ? 1 : 0; 
+    index %= (1<<bits);
+  }
+  return;
+}
+
 static int compare(uchar **origin, uchar *shape1, uchar *shape2, int N) {
     int count = 0;
     uchar *cur;
@@ -153,8 +161,7 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
     // for time repeat
     //L = rand()%(M/2); 
     L = t;
-    seg_num = 1;
-    num_1 = 0;
+
     if (t != 0){
       for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
       for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
@@ -197,6 +204,9 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
     //one segment count
     // last segment may not 3 1s;
     int start = 0, end;
+    seg_num = 0;
+    num_1 = 0;
+
     for ( i = 0; i < seg_num - 1; ++i) {
       end = pos[i * 3 + 2] + 1;
       for ( j = 0; j < 8; ++j) {
@@ -451,6 +461,36 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
         countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
       } 
       start = end;
+    }
+
+    s = 0;
+    int idx = 0;
+    int count;
+    
+    for ( i = 0; i < M; ++i) {
+      count = 0;
+      seg[8][s] = 0;
+      seg[9][s] = 2;
+      for ( j = 0; j < 8; ++j) {
+        setSeq(x, pos, i, j);
+        countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
+        if (g1[j][i] - f1[j][i] > 0)
+          count++;
+      }
+      //j = 2;
+      while(count < 5) {
+        j++;
+        for (int ii = 0; ii < count; ++ii) {
+          idx1 = seg[ii][s] << 1;
+          idx2 = seg[ii][s] << 1 + 1;
+          setSeq2(x, pos, i, j, idx1);
+          countHelp();
+          setSeq2();
+          countHelp();
+        }
+      }
+
+
     }
 
 
