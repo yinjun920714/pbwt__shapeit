@@ -430,6 +430,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   for (t = 0; t < 1; ++t) {
     // for time repeat
     //L = rand()%(M/2); 
+fprintf (stderr, "1~~~~~~~~: \n") ;
     L = t;
     seg_num = 1;
     num_1 = 0;
@@ -462,6 +463,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       g2[i] = myalloc(M/3 + 1, int*);
     }
     //one segment count
+fprintf (stderr, "2~~~~~~~~: \n") ;
     int start = 0, end;
     s = 0;
     int count, new_count;
@@ -520,6 +522,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       s++;
     }
 
+fprintf (stderr, "3~~~~~~~~: \n") ;
     seg_num = s;
     //initial f2, g2
     for (i = 0; i < 64; ++i)
@@ -540,6 +543,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       start = end;
     }
     
+fprintf (stderr, "4~~~~~~~~: \n") ;
     /*
     //minus the f1,g1 by 1 for the origin sequence
     for ( i = 0; i < seg_num - 1; ++i) {
@@ -619,11 +623,12 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   }
   */
 
+fprintf (stderr, "6~~~~~~~~: \n") ;
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
-  for (j = 0 ; j < 10; ++j) free(seg[i]) ; free (seg);
+  for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
   free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
