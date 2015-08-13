@@ -21,11 +21,11 @@ static int countHelp2(uchar *x, int start, int end, int *cc, int **u, int ini_f,
       (*g) = x[k] ? cc[k] + ((*g) - u[k][(*g)]) : u[k][(*g)]; 
     } else {
       (*f) = 0; (*g) = 0;
-      return 1;
+      return 0;
     } 
   }
   
-  return (*f) < (*g) ? 0 : 1;
+  return (*f) < (*g) ? 1 : 0;
 }
 
 static void setSeq(uchar *dir, int *pos, int seq, int index) {
@@ -393,7 +393,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   f2 = myalloc (64, int*);
   g2 = myalloc (64, int*);
   int *cc = myalloc (p->N, int) ;
-  seg = myalloc (10, int *) ; for (i = 0; i < 10; ++i) seg[i] = myalloc (M/3 + 1, int);
+  seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (M/3 + 1, int);
 
   shape1 = myalloc (N, uchar);
   shape2 = myalloc (N, uchar);
@@ -461,14 +461,9 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       f2[i] = myalloc(M/3 + 1, int*);
       g2[i] = myalloc(M/3 + 1, int*);
     }
-    //initial f1,g1
-
-        f1[i][j] = 0; g1[i][j] = M;
-
     //one segment count
     int start = 0, end;
     s = 0;
-    int idx = 0;
     int count, new_count;
     int tmp_f1[8];
     int tmp_g1[8];
@@ -488,22 +483,26 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
 
       while(count < 5) {
         new_count = 0;
-        if (seg[9][s] < num_1)
+        if (seg[9][s] < num_1 - 1) {
+          start = pos[seg[9][s]] + 1;
           seg[9][s]++;
+          end = pos[seg[9][s]] + 1;
+        }
         else 
           break;  
         
+
         for (int ii = 0; ii < count; ++ii) {
           idx1 = seg[ii][s] << 1;
           idx2 = (seg[ii][s] << 1) + 1;
           
-          setSeq2(x, pos, i, j, idx1);
-          if (!countHelp2(x, pos[seg[8][s]], pos[seg[9][s]] + 1, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+          setSeq2(x, pos, seg[8][s], seg[9][s], idx1);
+          if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
             seg[new_count++][s] = idx1;
           }
 
-          setSeq2(x, pos, i, j, idx2);
-          if (!countHelp2(x, pos[seg[8][s]], pos[seg[9][s]] + 1, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+          setSeq2(x, pos, seg[8][s], seg[9][s], idx2);
+          if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
             seg[new_count++][s] = idx2;  
           }
         }
@@ -512,10 +511,12 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
           f1[ii][s] = tmp_f1[ii];
           g1[ii][s] = tmp_g1[ii];
         }
+
         count = new_count;
       }
       start = pos[seg[9][s]] + 1;
       i = seg[9][s] + 1;
+      seg[10][s] = count;
       s++;
     }
 
@@ -526,18 +527,20 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
         f2[i][j] = f1[i/8][j]; 
         g2[i][j] = g1[i/8][j];
       }
-    start = pos[2] + 1;  
-    for ( i = 1; i < seg_num - 1; ++i) {
-      end = pos[i * 3 + 2] + 1;
-      for ( j = 0; j < 8; ++j){
-        for (int idx = 0; idx < 8; ++idx) {
-          setSeq(x, pos, i, idx);
-          countHelp(x, start, end, cc, u, &f2[idx + j * 8][i - 1], &g2[idx + j * 8][i - 1]);
+
+    start = pos[seg[8][1]] + 1;  
+    for ( s = 1; s < seg_num; ++s) {
+      end = pos[seg[9][s]] + 1;
+      for ( i = 0; i < seg[10][s - 1]; ++i ){
+        for ( j = 0; j < seg[10][s]; ++j ) {
+          setSeq2(x, pos, seg[8][s], seg[9][s], seg[j][s]);
+          countHelp(x, start, end, cc, u, &f2[j + i * 8][s - 1], &g2[j + i * 8][s - 1]);
         }
-      }
+      } 
       start = end;
     }
-   
+    
+    /*
     //minus the f1,g1 by 1 for the origin sequence
     for ( i = 0; i < seg_num - 1; ++i) {
       int index = origin[0][pos[i * 3]] * 4 + origin[0][pos[i * 3 + 1]] * 2 + origin[0][pos[i * 3 + 2]];
@@ -551,6 +554,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       f2[index][i]++;      //for origin[0];
       f2[63 - index][i]++;  //for origin[1];
     }
+    */
 
     //print f1, g1
     /*
@@ -582,8 +586,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
           g2[8*j+7][i] - f2[8*j+7][i]);
       printf("\n\n");
     }
-    */
-    
+    */   
   
 
 
@@ -600,9 +603,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   //fprintf (stderr, "After ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
   //timeUpdate () ;
   
-
-
-
   //fprintf (stderr, "globalSamplming\n");
   viterbiRandomSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
   memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
