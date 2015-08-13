@@ -575,14 +575,13 @@ fprintf (stderr, "4~~~~~~~~: \n") ;
     */
 
     //print f1, g1
-    
+    /*
     for (s = 0; s < seg_num; ++s) {
       printf("segment num\t%d\n", s);
       for (j = 0; j < seg[10][s]; ++j)
         printf("%d\t:%d\t", seg[j][s], g1[j][s] - f1[j][s]);
       printf("\n");
     }
-    /*
     // print the count;
     // print_one_seg;
     printf("the first segment\n");
@@ -630,6 +629,9 @@ fprintf (stderr, "4~~~~~~~~: \n") ;
 
     viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
     fprintf (stderr, "After Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
+    for ( i < 0; i < M; ++i)
+      printf("%u\t%u\t%u\t%u\t ", origin[0][i], origin[1][i], shape1[i], shape2[i]);
+    printf("\n");
   }
   
   /*
