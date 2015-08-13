@@ -629,7 +629,7 @@ fprintf (stderr, "4~~~~~~~~: \n") ;
 
     viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
     fprintf (stderr, "After Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
-    for ( i < 0; i < M; ++i)
+    for ( i < 0; i < N; ++i)
       printf("%u\t%u\t%u\t%u\t ", origin[0][i], origin[1][i], shape1[i], shape2[i]);
     printf("\n");
   }
@@ -786,7 +786,6 @@ fprintf (stderr, "5~~~~~~~~: \n") ;
   for ( i = 0; i < 8; ++i ) {
     phis[i] = myalloc(seg_num, int*); }
 
-fprintf (stderr, "5.1~~~~~~~~: \n") ;
   int total = 0;
   for( i = 0; i < seg[10][s]; ++i) {
     total += ( g1[i][0] - f1[i][0] ); }
@@ -803,7 +802,6 @@ fprintf (stderr, "5.1~~~~~~~~: \n") ;
   addWeight2(data, 0, w, seg[10][0]);
   Normalized2(data, 0, seg[10][0]);
 
-fprintf (stderr, "5.2~~~~~~~~: \n") ;
   int *totalCon;
   int prev;
   int target1, target2;
@@ -837,8 +835,6 @@ fprintf (stderr, "5.2~~~~~~~~: \n") ;
                       * data[cpl_j][s] * ((double)(g2[cpl_j * 8 + cpl_i][s] - f2[cpl_j * 8 + cpl_i][s] + 1.0/8) / (totalCon[cpl_j] + 1));
         if (val > maxVal) { maxIdx = j; maxVal = val;} }
       data[i][s + 1] = maxVal;
-if (maxIdx == -1)
-	fprintf (stderr, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~: \n") ;
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
     }
     addWeight2(data, s + 1, w, seg[10][s+1]);
@@ -850,7 +846,6 @@ if (maxIdx == -1)
   */
   }
 
-fprintf (stderr, "5.3~~~~~~~~: \n") ;
   free(totalCon);
 
   // backtrack path
@@ -859,7 +854,6 @@ fprintf (stderr, "5.3~~~~~~~~: \n") ;
   double maxData = data[0][seg_num - 1];
   path[seg_num - 1] = 0;
 
-fprintf (stderr, "5.31~~~~~~~~: \n") ;
   for ( i = 1; i < seg[10][seg_num - 1]; ++i) {
     if ( maxData < data[i][seg_num - 1]) {
       maxData = data[i][seg_num - 1];
@@ -867,18 +861,18 @@ fprintf (stderr, "5.31~~~~~~~~: \n") ;
     }
   }
 
-fprintf (stderr, "5.32~~~~~~~~: \n") ;
   for ( s = seg_num - 2; s >= 0; --s) {
     path[s] = phis[path[s + 1]][s + 1];
   }
+  //debug
+  for ( s = 0; s < seg_num; ++s)
+    fprintf (stderr, "path[%d]\t %d: actually:  %d\n", s, path[s], seg[path[s]][s]) ;
 
-fprintf (stderr, "5.33~~~~~~~~: \n") ;
   for ( s = 0; s < seg_num; ++s) {
     setSeq2(shape1, pos, seg[8][s], seg[9][s], seg[path[s]][s]);
     setSeq2(shape1, pos, seg[8][s], seg[9][s], (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[path[s]][s]);
   }
   
-fprintf (stderr, "5.4~~~~~~~~: \n") ;
   free(path);
   for (i = 0 ; i < 8 ; ++i) free(data[i]) ; free (data) ;
   for (i = 0 ; i < 8 ; ++i) free(phis[i]) ; free (phis) ;
