@@ -427,7 +427,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   int t;  //multi_time
   int TIMES = M/2;
   int L;
-  for (t = 0; t < TIMES; ++t) {
+  for (t = 0; t < 1; ++t) {
     // for time repeat
     //L = rand()%(M/2); 
     L = t;
@@ -557,13 +557,14 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
     */
 
     //print f1, g1
-    /*
-    for (i = 0; i < seg_num - 1; ++i) {
-      printf("segment num\t%d\n", i+1);
-      for (j = 0; j < 8; ++j)
-        printf("%d\t", g1[j][i] - f1[j][i]);
+    
+    for (s = 0; s < seg_num; ++s) {
+      printf("segment num\t%d\n", s);
+      for (j = 0; j < seg[10][s]; ++j)
+        printf("%d\t:%d\t", seg[j][s], g1[j][s] - f1[j][s]);
       printf("\n");
     }
+    /*
     // print the count;
     // print_one_seg;
     printf("the first segment\n");
@@ -604,18 +605,20 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   //timeUpdate () ;
   
   //fprintf (stderr, "globalSamplming\n");
-  viterbiRandomSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-  memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
-  memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
+  //viterbiRandomSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  //memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
+  //memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   }
   
+  /*
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       printf("%u ", newHap[i][j]);
     printf("\n");
   }
-  
+  */
+
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;

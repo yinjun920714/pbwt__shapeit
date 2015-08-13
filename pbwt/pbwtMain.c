@@ -437,7 +437,7 @@ int main (int argc, char *argv[])
       { p = playGround (p) ; argc -= 1 ; argv += 1 ; }
     else if (!strcmp (argv[0], "-matchCount") && argc > 1)
       { FOPEN("read","r") ;
-        pbwtMatchCount (p, fp) ; argc -= 2 ; argv += 2 ; }
+        pbwtMatchCount2 (p, fp) ; argc -= 2 ; argv += 2 ; }
     else
       die ("unrecognised command %s\nType pbwt without arguments for help", *argv) ;
     timeUpdate() ;
