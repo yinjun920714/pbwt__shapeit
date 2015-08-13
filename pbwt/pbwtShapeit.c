@@ -77,6 +77,20 @@ static void addWeight(double **data, int s, double w) {
     data[i][s] = w / 8 + (1 - w) * data[i][s];
 }
 
+static void Normalized2(double **data, int s, int size) {
+  double total;
+  for ( int i = 0; i < size; ++i)
+    total += data[i][s];
+  for ( int i = 0; i< size; ++i)
+    data[i][s] = data[i][s]/total;
+}
+
+static void addWeight2(double **data, int s, double w, int size) {
+  if (size == 0) return;
+  for ( int i = 0; i < size; ++i)
+    data[i][s] = w / size + (1 - w) * data[i][s];
+}
+
 //must used after normalized data.
 static int randomChoose(double **data, double *p, int s){
   p[0] = 0;
@@ -613,6 +627,9 @@ fprintf (stderr, "4~~~~~~~~: \n") ;
   //memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
   //memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
+
+    viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+    fprintf (stderr, "After Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   }
   
   /*
@@ -747,6 +764,107 @@ void viterbiSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_n
   for ( s = 0; s < seg_num - 1; ++s) {
     setSeq(shape1, pos, s, path[s]);
     setSeq(shape2, pos, s, 7 - path[s]);
+  }
+  
+  free(path);
+  for (i = 0 ; i < 8 ; ++i) free(data[i]) ; free (data) ;
+  for (i = 0 ; i < 8 ; ++i) free(phis[i]) ; free (phis) ;
+}
+
+void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
+  int i, j, cpl_i, cpl_j, s = 0;
+  int target;
+  double **data;
+  data = myalloc(8, double* );
+  for ( i = 0; i < 8; ++i ) {
+    data[i] = myalloc(seg_num, double*); }
+  int **phis;
+  phis = myalloc(8, int* );
+  for ( i = 0; i < 8; ++i ) {
+    phis[i] = myalloc(seg_num, int*); }
+
+  int total = 0;
+  for( i = 0; i < seg[10][s]; ++i) {
+    total += ( g1[i][0] - f1[i][0] ); }
+
+  for( i = 0; i < seg[10][s]; ++i) {
+    target = (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[i][s];    
+    for (int cpl_i = 0; cpl_i < seg[10][s]; ++cpl_i) {
+      if(seg[cpl_i][s] == target)
+        break;  
+    }
+    data[i][0] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (cpl_i < seg[10][s] ? (g1[cpl_i][0] - f1[cpl_i][0]) : 0)) / (total * total)); 
+  }
+  //    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
+  addWeight2(data, 0, w, seg[10][0]);
+  Normalized2(data, 0, seg[10][0]);
+
+  int *totalCon;
+  int prev;
+  int target1, target2;
+  totalCon = myalloc(8, int);
+  //i, target1 for current block;
+  //j, target2 for prev block;
+  for( s = 0; s < seg_num - 1; ++s) {
+    for ( j = 0; j < seg[10][s]; ++j)
+        totalCon[j] = (g1[j][s] - f1[j][s]);
+    
+    for ( i = 0; i < seg[10][s+1]; ++i) {
+      int maxIdx = -1;
+      double maxVal = 0;
+      target1 = (1 << (seg[9][s+1] - seg[8][s+1] + 1)) - 1 - seg[i][s+1]; 
+      for (cpl_i = 0; cpl_i < seg[10][s+1]; ++cpl_i) {
+        if(seg[cpl_i][s+1] == target1)
+          break;  
+      }
+
+      for ( j = 0; j < seg[10][s]; ++j) {
+        target2 = (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[j][s]; 
+        for (cpl_j = 0; cpl_j < seg[10][s]; ++cpl_j) {
+          if(seg[cpl_j][s] == target2)
+            break;  
+        }
+        double val;
+        if (cpl_i == seg[10][s+1] || cpl_j == seg[10][s])
+          val = 0.0;
+        else
+          val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1))
+                      * data[cpl_j][s] * ((double)(g2[cpl_j * 8 + cpl_i][s] - f2[cpl_j * 8 + cpl_i][s] + 1.0/8) / (totalCon[cpl_j] + 1));
+        if (val > maxVal) { maxIdx = j; maxVal = val;} }
+      data[i][s + 1] = maxVal;
+      phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
+    }
+    addWeight2(data, s + 1, w, seg[10][s+1]);
+    Normalized2(data, s + 1, seg[10][s+1]);
+  /*
+    for( i = 0; i < 8; ++i) 
+      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
+    printf ("\n");
+  */
+  }
+
+  free(totalCon);
+
+  // backtrack path
+  int *path;
+  path = myalloc(seg_num, int);
+  double maxData = data[0][seg_num - 1];
+  path[seg_num - 1] = 0;
+
+  for ( i = 1; i < seg[10][seg_num - 1]; ++i) {
+    if ( maxData < data[i][seg_num - 1]) {
+      maxData = data[i][seg_num - 1];
+      path[seg_num - 1] = i; 
+    }
+  }
+
+  for ( s = seg_num - 2; s >= 0; --s) {
+    path[s] = phis[path[s + 1]][s + 1];
+  }
+
+  for ( s = 0; s < seg_num; ++s) {
+    setSeq2(shape1, pos, seg[8][s], seg[9][s], seg[path[s]][s]);
+    setSeq2(shape1, pos, seg[8][s], seg[9][s], (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[path[s]][s]);
   }
   
   free(path);
