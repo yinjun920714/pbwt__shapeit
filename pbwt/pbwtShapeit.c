@@ -772,6 +772,7 @@ void viterbiSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_n
 }
 
 void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
+fprintf (stderr, "5~~~~~~~~: \n") ;
   int i, j, cpl_i, cpl_j, s = 0;
   int target;
   double **data;
@@ -783,6 +784,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
   for ( i = 0; i < 8; ++i ) {
     phis[i] = myalloc(seg_num, int*); }
 
+fprintf (stderr, "5.1~~~~~~~~: \n") ;
   int total = 0;
   for( i = 0; i < seg[10][s]; ++i) {
     total += ( g1[i][0] - f1[i][0] ); }
@@ -799,6 +801,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
   addWeight2(data, 0, w, seg[10][0]);
   Normalized2(data, 0, seg[10][0]);
 
+fprintf (stderr, "5.2~~~~~~~~: \n") ;
   int *totalCon;
   int prev;
   int target1, target2;
@@ -826,12 +829,14 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
         }
         double val;
         if (cpl_i == seg[10][s+1] || cpl_j == seg[10][s])
-          val = 0.0;
+          val = 0.01;
         else
           val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1))
                       * data[cpl_j][s] * ((double)(g2[cpl_j * 8 + cpl_i][s] - f2[cpl_j * 8 + cpl_i][s] + 1.0/8) / (totalCon[cpl_j] + 1));
         if (val > maxVal) { maxIdx = j; maxVal = val;} }
       data[i][s + 1] = maxVal;
+if (maxIdx == -1)
+	fprintf (stderr, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~: \n") ;
       phis[i][s + 1] = maxIdx;    //from 1 - seg_Num - 2
     }
     addWeight2(data, s + 1, w, seg[10][s+1]);
@@ -843,6 +848,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
   */
   }
 
+fprintf (stderr, "5.3~~~~~~~~: \n") ;
   free(totalCon);
 
   // backtrack path
@@ -851,6 +857,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
   double maxData = data[0][seg_num - 1];
   path[seg_num - 1] = 0;
 
+fprintf (stderr, "5.31~~~~~~~~: \n") ;
   for ( i = 1; i < seg[10][seg_num - 1]; ++i) {
     if ( maxData < data[i][seg_num - 1]) {
       maxData = data[i][seg_num - 1];
@@ -858,15 +865,18 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
     }
   }
 
+fprintf (stderr, "5.32~~~~~~~~: \n") ;
   for ( s = seg_num - 2; s >= 0; --s) {
     path[s] = phis[path[s + 1]][s + 1];
   }
 
+fprintf (stderr, "5.33~~~~~~~~: \n") ;
   for ( s = 0; s < seg_num; ++s) {
     setSeq2(shape1, pos, seg[8][s], seg[9][s], seg[path[s]][s]);
     setSeq2(shape1, pos, seg[8][s], seg[9][s], (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[path[s]][s]);
   }
   
+fprintf (stderr, "5.4~~~~~~~~: \n") ;
   free(path);
   for (i = 0 ; i < 8 ; ++i) free(data[i]) ; free (data) ;
   for (i = 0 ; i < 8 ; ++i) free(phis[i]) ; free (phis) ;
