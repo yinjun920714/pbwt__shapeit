@@ -479,6 +479,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
     int count, new_count;
     int tmp_f1[8];
     int tmp_g1[8];
+    int tmp_seg[8];
     int idx1, idx2;
     for ( i = 0; i < num_1 - 2;) {
       count = 0;
@@ -510,18 +511,22 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
           
           setSeq2(x, pos, seg[8][s], seg[9][s], idx1);
           if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
-            seg[new_count++][s] = idx1;
+ //change??? seg[][s]
+            tmp_seg[new_count++] = idx1;
+  //          seg[new_count++][s] = idx1;
           }
 
           setSeq2(x, pos, seg[8][s], seg[9][s], idx2);
           if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
-            seg[new_count++][s] = idx2;  
+            tmp_seg[new_count++] = idx2;
+      //      seg[new_count++][s] = idx2;  
           }
         }
 
         for (int ii = 0; ii < new_count; ++ii) {
           f1[ii][s] = tmp_f1[ii];
           g1[ii][s] = tmp_g1[ii];
+          seg[ii][s] = tmp_seg[ii];
         }
 
       count = new_count;
@@ -574,7 +579,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
               cpl_index = i;
       }  
       f1[index][s]++;      //for origin[0];
-//something wrong!      
+  //something wrong!      
       if (cpl_index < seg[10][s])
          f1[cpl_index][s]++;  //for origin[1];
     }
@@ -614,7 +619,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       }
 
       f2[index1 * 8 + index2][s]++;      //for origin[0];
-//something wrong      
+  //something wrong      
       if (cpl_index1 < seg[10][s] && cpl_index2 < seg[10][s+1])
       	   f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
     }
@@ -700,9 +705,8 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
 }
 
 void Sampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
-
-
 }
+
 void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
   //MostLike
   int max_idx = 0;
