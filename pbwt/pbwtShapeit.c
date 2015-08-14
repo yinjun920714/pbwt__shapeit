@@ -495,7 +495,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       }
 
       while(count < 5) {
-        if (seg[9][s] - seg[8][s] > 2) break;
+        if (seg[9][s] - seg[8][s] > 3) break;
         new_count = 0;
         if (seg[9][s] < num_1 - 1) {
           start = pos[seg[9][s]] + 1;
