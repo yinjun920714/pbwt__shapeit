@@ -553,21 +553,71 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       start = end;
     }
     
-    /*
+    
     //minus the f1,g1 by 1 for the origin sequence
-    for ( i = 0; i < seg_num - 1; ++i) {
-      int index = origin[0][pos[i * 3]] * 4 + origin[0][pos[i * 3 + 1]] * 2 + origin[0][pos[i * 3 + 2]];
-      f1[index][i]++;      //for origin[0];
-      f1[7 - index][i]++;  //for origin[1];
+    int target;
+    int cpl_target;
+    int index;
+    int cpl_index;
+    int bits;
+    for ( s = 0; s < seg_num; ++s) {
+      target = 0;
+      bits = seg[9][s] - seg[8][s];
+      for (i = 0; i <= bits; ++i)
+          target += (origin[0][pos[seg[8][s] + i]] << (bits - i));
+      cpl_target = (1 << (bits + 1)) - 1 - target;
+      cpl_index = seg[10][s];
+      for (i = 0; i < seg[10][s]; ++i) {
+          if (seg[i][s] == target)
+              index = i;
+          else if (seg[i][s] ==  cpl_target)
+              cpl_index = i;
+      }  
+      f1[index][s]++;      //for origin[0];
+      if (cpl_index == seg[10][s])
+        fprintf(stderr, "wrongwrong1~~~~~~~~~~~~~~\n");  
+      f1[cpl_index][s]++;  //for origin[1];
     }
 
-    for ( i = 0; i < seg_num - 2; ++i) {
-      int index = origin[0][pos[i * 3]] * 32 + origin[0][pos[i * 3 + 1]] * 16 + origin[0][pos[i * 3 + 2]] * 8  //previous block
-                  + origin[0][pos[i * 3 + 3]] * 4 + origin[0][pos[i * 3 + 4]] * 2 + origin[0][pos[i * 3 + 5]]; //current block
-      f2[index][i]++;      //for origin[0];
-      f2[63 - index][i]++;  //for origin[1];
+
+    int target1, target2;
+    int cpl_target1, cpl_target2;
+    int index1, index2;
+    int cpl_index1, cpl_index2;
+    int bits1, bits2;
+    
+    for ( s = 0; s < seg_num - 1; ++s) {
+      target1 = 0;
+      bits1 = seg[9][s] - seg[8][s];
+      for (i = 0; i <= bits1; ++i)
+          target1 += (origin[0][pos[seg[8][s] + i]] << (bits1 - i));
+      cpl_target1 = (1 << (bits1 + 1)) - 1 - target1;
+      cpl_index1 = seg[10][s];
+      for (i = 0; i < seg[10][s]; ++i) {
+          if (seg[i][s] == target1)
+              index1 = i;
+          else if (seg[i][s] ==  cpl_target1)
+              cpl_index1 = i;
+      }
+
+      target2 = 0;
+      bits2 = seg[9][s+1] - seg[8][s+1];
+      for (i = 0; i <= bits2; ++i)
+          target2 += (origin[0][pos[seg[8][s+1] + i]] << (bits2 - i));
+      cpl_target2 = (1 << (bits2 + 1)) - 1 - target2;
+      cpl_index2 = seg[10][s+1];
+      for (i = 0; i < seg[10][s+1]; ++i) {
+          if (seg[i][s+1] == target2)
+              index2 = i;
+          else if (seg[i][s+1] ==  cpl_target2)
+              cpl_index2 = i;
+      }
+
+      f2[index1 * 8 + index2][s]++;      //for origin[0];
+      if (cpl_index1 == seg[10][s] || cpl_index2 == seg[10][s+1])
+        fprintf(stderr, "wrongwrong2~~~~~~~~~~~~~~\n");  
+      f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
     }
-    */
 
     //print f1, g1
     /*
