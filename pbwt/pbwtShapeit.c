@@ -191,6 +191,8 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp) /* reporting the match number for each 
     // for time repeat
     //L = rand()%(M/2); 
     L = t;
+    seg_num = 0;
+    num_1 = 0;
 
     if (t != 0){
       for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
@@ -234,9 +236,6 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp) /* reporting the match number for each 
     //one segment count
     // last segment may not 3 1s;
     int start = 0, end;
-    seg_num = 0;
-    num_1 = 0;
-
     for ( i = 0; i < seg_num - 1; ++i) {
       end = pos[i * 3 + 2] + 1;
       for ( j = 0; j < 8; ++j) {
@@ -245,7 +244,6 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp) /* reporting the match number for each 
       } 
       start = end;
     }
-
 
     //initial f2, g2
     for (i = 0; i < 64; ++i)
@@ -833,11 +831,11 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
     }
     addWeight2(data, s + 1, w, seg[10][s+1]);
     Normalized2(data, s + 1, seg[10][s+1]);
-  
+  /* 
     for( i = 0; i < seg[10][s+1]; ++i) 
       printf ("data[%d][%d] %f %d\t", i, s+1, data[i][s+1], phis[i][s+1]);
     printf ("\n");
-  
+  */
   }
 
   free(totalCon);
