@@ -209,10 +209,11 @@ void matchSequencesSweepSparse (PBWT *p, PBWT *q, int nSparse,
 
 /* pbwtShapeit.c - functions implemented by Jun Yin */
 
-void pbwtMatchCount (PBWT *p, FILE *fp) ;
+void pbwtMatchCount1 (PBWT *p, FILE *fp) ;
+void pbwtMatchCount2 (PBWT *p, FILE *fp) ;
 void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void Sampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
-void viterbiSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
+void viterbiSampling1(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void viterbiRandomSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 

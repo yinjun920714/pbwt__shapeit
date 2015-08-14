@@ -104,7 +104,7 @@ static int randomChoose(double **data, double *p, int s){
   return 0;
 }
 
-void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each segment */ 
+void pbwtMatchCount1 (PBWT *p, FILE *fp) /* reporting the match number for each segment */ 
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
@@ -331,7 +331,7 @@ void pbwtMatchCount (PBWT *p, FILE *fp) /* reporting the match number for each s
 
 
   //fprintf (stderr, "globalSamplming\n");
-  viterbiRandomSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  viterbiSampling1(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
   memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
   memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
@@ -441,7 +441,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   int t;  //multi_time
   int TIMES = M/2;
   int L;
-  for (t = 0; t < 1; ++t) {
+  for (t = 0; t < TIMES; ++t) {
     // for time repeat
     //L = rand()%(M/2); 
     L = t;
@@ -496,7 +496,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       }
 
       while(count < 5) {
-	if (seg[9][s] - seg[8][s] > 1) break;
+        if (seg[9][s] - seg[8][s] > 1) break;
         new_count = 0;
         if (seg[9][s] < num_1 - 1) {
           start = pos[seg[9][s]] + 1;
@@ -624,19 +624,18 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   //memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
 
-    viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-    fprintf (stderr, "After Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
-    //for ( i < 0; i < N; ++i)
-    //  printf("%u\t%u\t%u\t%u\n ", origin[0][i], origin[1][i], shape1[i], shape2[i]);
+  viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
+  memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   }
   
-  /*
+  
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       printf("%u ", newHap[i][j]);
     printf("\n");
   }
-  */
+  
 
   /* cleanup */
   free (cc) ;
@@ -693,7 +692,7 @@ void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int se
   }
 }
 
-void viterbiSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
+void viterbiSampling1(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
   int i,j,s;
   double **data;
   data = myalloc(8, double* );
