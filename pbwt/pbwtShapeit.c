@@ -494,7 +494,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       }
 
       while(count < 5) {
-        if (seg[9][s] - seg[8][s] > 1) break;
+        if (seg[9][s] - seg[8][s] > 2) break;
         new_count = 0;
         if (seg[9][s] < num_1 - 1) {
           start = pos[seg[9][s]] + 1;
@@ -574,9 +574,9 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
               cpl_index = i;
       }  
       f1[index][s]++;      //for origin[0];
-      if (cpl_index == seg[10][s])
-        fprintf(stderr, "wrongwrong1~~~~~~~~~~~~~~\n");  
-      f1[cpl_index][s]++;  //for origin[1];
+//something wrong!      
+      if (cpl_index < seg[10][s])
+         f1[cpl_index][s]++;  //for origin[1];
     }
 
 
@@ -614,9 +614,9 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       }
 
       f2[index1 * 8 + index2][s]++;      //for origin[0];
-      if (cpl_index1 == seg[10][s] || cpl_index2 == seg[10][s+1])
-        fprintf(stderr, "wrongwrong2~~~~~~~~~~~~~~\n");  
-      f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
+//something wrong      
+      if (cpl_index1 < seg[10][s] && cpl_index2 < seg[10][s+1])
+      	   f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
     }
 
     //print f1, g1
@@ -854,7 +854,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
         totalCon[j] = (g1[j][s] - f1[j][s]);
     
     for ( i = 0; i < seg[10][s+1]; ++i) {
-      int maxIdx = -1;
+      int maxIdx = 0;
       double maxVal = 0;
       target1 = (1 << (seg[9][s+1] - seg[8][s+1] + 1)) - 1 - seg[i][s+1]; 
       for (cpl_i = 0; cpl_i < seg[10][s+1]; ++cpl_i) {
