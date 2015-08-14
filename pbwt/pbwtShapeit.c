@@ -407,7 +407,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   f2 = myalloc (64, int*);
   g2 = myalloc (64, int*);
   int *cc = myalloc (p->N, int) ;
-  seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (M/3 + 1, int);
+  seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
 
   shape1 = myalloc (N, uchar);
   shape2 = myalloc (N, uchar);
@@ -444,7 +444,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
   for (t = 0; t < 1; ++t) {
     // for time repeat
     //L = rand()%(M/2); 
-fprintf (stderr, "1~~~~~~~~: \n") ;
     L = t;
     seg_num = 1;
     num_1 = 0;
@@ -469,22 +468,21 @@ fprintf (stderr, "1~~~~~~~~: \n") ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
     
     for ( i = 0; i < 8; ++i) { 
-      f1[i] = myalloc(M/3 + 1, int*);
-      g1[i] = myalloc(M/3 + 1, int*);
+      f1[i] = myalloc(N/3 + 1, int*);
+      g1[i] = myalloc(N/3 + 1, int*);
     }
     for ( i = 0; i < 64; ++i) { 
-      f2[i] = myalloc(M/3 + 1, int*);
-      g2[i] = myalloc(M/3 + 1, int*);
+      f2[i] = myalloc(N/3 + 1, int*);
+      g2[i] = myalloc(N/3 + 1, int*);
     }
     //one segment count
-fprintf (stderr, "2~~~~~~~~: \n") ;
     int start = 0, end;
     s = 0;
     int count, new_count;
     int tmp_f1[8];
     int tmp_g1[8];
     int idx1, idx2;
-    for ( i = 0; i < num_1;) {
+    for ( i = 0; i < num_1 - 2;) {
       count = 0;
       seg[8][s] = i;
       seg[9][s] = i + 2;
@@ -498,6 +496,7 @@ fprintf (stderr, "2~~~~~~~~: \n") ;
       }
 
       while(count < 5) {
+	if (seg[9][s] - seg[8][s] > 1) break;
         new_count = 0;
         if (seg[9][s] < num_1 - 1) {
           start = pos[seg[9][s]] + 1;
@@ -507,7 +506,6 @@ fprintf (stderr, "2~~~~~~~~: \n") ;
         else 
           break;  
         
-
         for (int ii = 0; ii < count; ++ii) {
           idx1 = seg[ii][s] << 1;
           idx2 = (seg[ii][s] << 1) + 1;
@@ -528,7 +526,7 @@ fprintf (stderr, "2~~~~~~~~: \n") ;
           g1[ii][s] = tmp_g1[ii];
         }
 
-        count = new_count;
+      count = new_count;
       }
       start = pos[seg[9][s]] + 1;
       i = seg[9][s] + 1;
@@ -536,8 +534,8 @@ fprintf (stderr, "2~~~~~~~~: \n") ;
       s++;
     }
 
-fprintf (stderr, "3~~~~~~~~: \n") ;
     seg_num = s;
+
     //initial f2, g2
     for (i = 0; i < 64; ++i)
       for (j = 0; j < seg_num; ++j) {
@@ -548,7 +546,7 @@ fprintf (stderr, "3~~~~~~~~: \n") ;
     start = pos[seg[8][1]] + 1;  
     for ( s = 1; s < seg_num; ++s) {
       end = pos[seg[9][s]] + 1;
-      for ( i = 0; i < seg[10][s - 1]; ++i ){
+      for ( i = 0; i < seg[10][s - 1]; ++i ) {
         for ( j = 0; j < seg[10][s]; ++j ) {
           setSeq2(x, pos, seg[8][s], seg[9][s], seg[j][s]);
           countHelp(x, start, end, cc, u, &f2[j + i * 8][s - 1], &g2[j + i * 8][s - 1]);
@@ -557,7 +555,6 @@ fprintf (stderr, "3~~~~~~~~: \n") ;
       start = end;
     }
     
-fprintf (stderr, "4~~~~~~~~: \n") ;
     /*
     //minus the f1,g1 by 1 for the origin sequence
     for ( i = 0; i < seg_num - 1; ++i) {
@@ -629,9 +626,8 @@ fprintf (stderr, "4~~~~~~~~: \n") ;
 
     viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
     fprintf (stderr, "After Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
-    for ( i < 0; i < N; ++i)
-      printf("%u\t%u\t%u\t%u\t ", origin[0][i], origin[1][i], shape1[i], shape2[i]);
-    printf("\n");
+    //for ( i < 0; i < N; ++i)
+    //  printf("%u\t%u\t%u\t%u\n ", origin[0][i], origin[1][i], shape1[i], shape2[i]);
   }
   
   /*
@@ -642,7 +638,6 @@ fprintf (stderr, "4~~~~~~~~: \n") ;
   }
   */
 
-fprintf (stderr, "6~~~~~~~~: \n") ;
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
@@ -774,7 +769,6 @@ void viterbiSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_n
 }
 
 void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
-fprintf (stderr, "5~~~~~~~~: \n") ;
   int i, j, cpl_i, cpl_j, s = 0;
   int target;
   double **data;
@@ -796,7 +790,7 @@ fprintf (stderr, "5~~~~~~~~: \n") ;
       if(seg[cpl_i][s] == target)
         break;  
     }
-    data[i][0] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (cpl_i < seg[10][s] ? (g1[cpl_i][0] - f1[cpl_i][0]) : 0)) / (total * total)); 
+    data[i][0] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (cpl_i < seg[10][s] ? (g1[cpl_i][0] - f1[cpl_i][0]) / total : 0.001)) / total); 
   }
   //    data[i][0] = ( total == 0 ? 0 : (double) (g1[i][0] - f1[i][0]) / total ); }
   addWeight2(data, 0, w, seg[10][0]);
@@ -829,7 +823,8 @@ fprintf (stderr, "5~~~~~~~~: \n") ;
         }
         double val;
         if (cpl_i == seg[10][s+1] || cpl_j == seg[10][s])
-          val = 0.01;
+          //val = 0.0001;
+          val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1)) * 0.001;
         else
           val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1))
                       * data[cpl_j][s] * ((double)(g2[cpl_j * 8 + cpl_i][s] - f2[cpl_j * 8 + cpl_i][s] + 1.0/8) / (totalCon[cpl_j] + 1));
@@ -839,11 +834,11 @@ fprintf (stderr, "5~~~~~~~~: \n") ;
     }
     addWeight2(data, s + 1, w, seg[10][s+1]);
     Normalized2(data, s + 1, seg[10][s+1]);
-  /*
-    for( i = 0; i < 8; ++i) 
-      printf ("data[%d][%d] %f\t", i, s+1, data[i][s+1]);
+  
+    for( i = 0; i < seg[10][s+1]; ++i) 
+      printf ("data[%d][%d] %f %d\t", i, s+1, data[i][s+1], phis[i][s+1]);
     printf ("\n");
-  */
+  
   }
 
   free(totalCon);
@@ -865,12 +860,12 @@ fprintf (stderr, "5~~~~~~~~: \n") ;
     path[s] = phis[path[s + 1]][s + 1];
   }
   //debug
-  for ( s = 0; s < seg_num; ++s)
-    fprintf (stderr, "path[%d]\t %d: actually:  %d\n", s, path[s], seg[path[s]][s]) ;
+  //for ( s = 0; s < seg_num; ++s)
+  //  fprintf (stderr, "path[%d]\t %d: actually:  %d\t%d\t%d\t%d\n", s, path[s], seg[path[s]][s], seg[8][s], seg[9][s], pos[seg[8][s]]) ;
 
   for ( s = 0; s < seg_num; ++s) {
     setSeq2(shape1, pos, seg[8][s], seg[9][s], seg[path[s]][s]);
-    setSeq2(shape1, pos, seg[8][s], seg[9][s], (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[path[s]][s]);
+    setSeq2(shape2, pos, seg[8][s], seg[9][s], (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[path[s]][s]);
   }
   
   free(path);
