@@ -438,9 +438,9 @@ int main (int argc, char *argv[])
     else if (!strcmp (argv[0], "-matchCount1") && argc > 1)
       { FOPEN("read","r") ;
         pbwtMatchCount1 (p, fp) ; argc -= 2 ; argv += 2 ; }
-    else if (!strcmp (argv[0], "-matchCount2") && argc > 1)
+    else if (!strcmp (argv[0], "-matchCount2") && argc > 2)
       { FOPEN("read","r") ;
-        pbwtMatchCount2 (p, fp) ; argc -= 2 ; argv += 2 ; }
+        pbwtMatchCount2 (p, fp, argv[2]) ; argc -= 3 ; argv += 3 ; }
     else
       die ("unrecognised command %s\nType pbwt without arguments for help", *argv) ;
     timeUpdate() ;

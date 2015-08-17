@@ -354,7 +354,7 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp) /* reporting the match number for each 
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
 }
 
-void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each segment */ 
+void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match number for each segment */ 
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
@@ -495,7 +495,8 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp) /* reporting the match number for each 
       }
 
       while(count < 5) {
-        if (seg[9][s] - seg[8][s] > 3) break;
+
+        if (seg[9][s] - seg[8][s] > (maxGeno - 2)) break;
         new_count = 0;
         if (seg[9][s] < num_1 - 1) {
           start = pos[seg[9][s]] + 1;
