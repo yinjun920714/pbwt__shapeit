@@ -495,7 +495,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
       }
 
       while(count < 5) {
-
         if (seg[9][s] - seg[8][s] > (maxGeno - 2)) break;
         new_count = 0;
         if (seg[9][s] < num_1 - 1) {
@@ -559,7 +558,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
       start = end;
     }
     
-    
     //minus the f1,g1 by 1 for the origin sequence
     int target;
     int cpl_target;
@@ -584,7 +582,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
       if (cpl_index < seg[10][s])
          f1[cpl_index][s]++;  //for origin[1];
     }
-
 
     int target1, target2;
     int cpl_target1, cpl_target2;
@@ -682,7 +679,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
   memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   }
-  
   
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
