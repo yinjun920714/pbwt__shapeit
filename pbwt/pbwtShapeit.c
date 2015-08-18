@@ -882,11 +882,12 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
     }
     addWeight2(data, s + 1, w, seg[10][s+1]);
     Normalized2(data, s + 1, seg[10][s+1]);
-  /* 
+  
+    /* 
     for( i = 0; i < seg[10][s+1]; ++i) 
-      printf ("data[%d][%d] %f %d\t", i, s+1, data[i][s+1], phis[i][s+1]);
-    printf ("\n");
-  */
+     fprintf (stderr, "s : %d   data[%d][%d] %f %d\t", s+1, i, s+1, data[i][s+1], phis[i][s+1]);
+    fprintf (stderr, "\n");
+    */
   }
 
   free(totalCon);
@@ -905,6 +906,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
   }
 
   for ( s = seg_num - 2; s >= 0; --s) {
+//fprintf (stderr, "s: %d, path[s+1]: %d, phis[path[s+1]][s+1]: %d  \n", s, path[s+1], phis[path[s+1]][s+1]) ;
     path[s] = phis[path[s + 1]][s + 1];
   }
   //debug
