@@ -359,7 +359,29 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
   //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
-  /*  
+  /***************** pbwt part *******************/
+  uchar *x;                 /* use for current query */
+  PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
+  int **u ;   /* stored indexes */
+  int *cc = myalloc (p->N, int) ;
+  int i, j, k, N = p->N, M = p->M ;
+  /* build indexes */
+  u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
+  x = myalloc (N, uchar*) ; 
+  
+  for (k = 0 ; k < N ; ++k)
+  { 
+    cc[k] = up->c ;
+    pbwtCursorCalculateU (up) ;
+    memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
+    pbwtCursorForwardsReadAD (up, k) ;
+  }
+  pbwtCursorDestroy (up) ;
+  fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
+  
+  /**************************************/
+
+  /***************** my algorithm part ************/
   uchar **reference;
   reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
   uchar ch;
@@ -372,7 +394,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
           ch = fgetc(fp);  
         reference[i][j] = ch -'0'; 
       }
-  */
+  
   /*
   for (int j = 0; j < p->N; ++j) {
     for (int i = 0; i < p->M; ++i)
@@ -380,13 +402,10 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
     printf("\n");
   }
   */
-  uchar **origin;
-  uchar *x;                 /* use for current query */
-  PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
-  int **a, **d, **u ;   /* stored indexes */
+  
   int **f1, **g1 ;     /* start of match, and pbwt interval as in algorithm 5 */
   int **f2, **g2 ;    /* next versions of the above, e' etc in algorithm 5 */
-  int i, j, k, N = p->N, M = p->M ;
+  uchar **origin;
   int s, seg_num = 1; /* for the segment number and current segment */
   int *pos; /* for the 1 position for ref */
   int num_1 = 0; /* for the num of 1 */
@@ -394,45 +413,17 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   uchar *shape2;  /* for the shape seq2 */
   int **seg;      /* store the seg info */
   double w = 1.0 / M;
-  
+
   uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
-  
-  /* build indexes */
-  // a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
-  // d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
-  u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
-  x = myalloc (N, uchar*) ; 
   pos = myalloc (N, int*) ;
   f1 = myalloc (8, int*);
   g1 = myalloc (8, int*);
   f2 = myalloc (64, int*);
   g2 = myalloc (64, int*);
-  int *cc = myalloc (p->N, int) ;
   seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
-
   shape1 = myalloc (N, uchar);
   shape2 = myalloc (N, uchar);
-
-  for (k = 0 ; k < N ; ++k)
-    { //memcpy (a[k], up->a, M*sizeof(int)) ;
-      //memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
-      cc[k] = up->c ;
-      pbwtCursorCalculateU (up) ;
-      memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
-      pbwtCursorForwardsReadAD (up, k) ;
-    }
- // memcpy (a[k], up->a, M*sizeof(int)) ;
- // memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
-  pbwtCursorDestroy (up) ;
-  
-
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
-
-  //  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
-  //  for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
-  //  for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
-  
-  fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
 
   /* for time cal
   struct timeval tstart, tend;
@@ -620,7 +611,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
       }
 
       f2[index1 * 8 + index2][s]++;      //for origin[0];
-  //something wrong      
       if (cpl_index1 < seg[10][s] && cpl_index2 < seg[10][s+1])
       	   f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
     }
@@ -692,7 +682,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
 
   /* cleanup */
   free (cc) ;
-  //for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
   for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
   free (shape1) ; free (shape2) ;
