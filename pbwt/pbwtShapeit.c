@@ -359,9 +359,11 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
   //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  /*
   uchar **reference;
   reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
   uchar ch;
+  
   for (int j = 0; j < p->N; ++j)
     for (int i = 0; i < p->M; ++i)
       { 
@@ -370,6 +372,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
           ch = fgetc(fp);  
         reference[i][j] = ch -'0'; 
       }
+  */
   /*
   for (int j = 0; j < p->N; ++j) {
     for (int i = 0; i < p->M; ++i)
@@ -395,8 +398,8 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
   
   /* build indexes */
-  a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
-  d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
+  // a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
+  // d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
   u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
   x = myalloc (N, uchar*) ; 
   pos = myalloc (N, int*) ;
@@ -426,8 +429,8 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
 
   //  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
-  for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
-  for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
+  //  for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
+  //  for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
   
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
 
