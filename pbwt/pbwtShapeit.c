@@ -359,7 +359,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
   //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
-  /*
+  /*  
   uchar **reference;
   reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
   uchar ch;
@@ -414,15 +414,15 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   shape2 = myalloc (N, uchar);
 
   for (k = 0 ; k < N ; ++k)
-    { memcpy (a[k], up->a, M*sizeof(int)) ;
-      memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
+    { //memcpy (a[k], up->a, M*sizeof(int)) ;
+      //memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
       cc[k] = up->c ;
       pbwtCursorCalculateU (up) ;
       memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
       pbwtCursorForwardsReadAD (up, k) ;
     }
-  memcpy (a[k], up->a, M*sizeof(int)) ;
-  memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
+ // memcpy (a[k], up->a, M*sizeof(int)) ;
+ // memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
   pbwtCursorDestroy (up) ;
   
 
@@ -692,7 +692,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
 
   /* cleanup */
   free (cc) ;
-  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  //for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
   for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
   free (shape1) ; free (shape2) ;
