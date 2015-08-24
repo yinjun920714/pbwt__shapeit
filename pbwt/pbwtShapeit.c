@@ -414,13 +414,13 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   int **seg;      /* store the seg info */
   double w = 1.0 / M;
 
-  uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
+  //uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
   pos = myalloc (N, int*) ;
   f1 = myalloc (8, int*);
   g1 = myalloc (8, int*);
   f2 = myalloc (64, int*);
   g2 = myalloc (64, int*);
-  seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
+  //seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
   shape1 = myalloc (N, uchar);
   shape2 = myalloc (N, uchar);
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
@@ -442,6 +442,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
     if (t != 0){
       for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
       for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+      for ( i = 0; i < 11; ++i) { free(seg[i]); }
     }
     memcpy (origin[0], reference[2*L], N*sizeof(uchar));
     memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
@@ -456,16 +457,17 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
 
+    seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (num_1/3 + 1, int);
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
     
     for ( i = 0; i < 8; ++i) { 
-      f1[i] = myalloc(N/3 + 1, int*);
-      g1[i] = myalloc(N/3 + 1, int*);
+      f1[i] = myalloc(num_1/3 + 1, int*);
+      g1[i] = myalloc(num_1/3 + 1, int*);
     }
     for ( i = 0; i < 64; ++i) { 
-      f2[i] = myalloc(N/3 + 1, int*);
-      g2[i] = myalloc(N/3 + 1, int*);
+      f2[i] = myalloc(num_1/3 + 1, int*);
+      g2[i] = myalloc(num_1/3 + 1, int*);
     }
     //one segment count
     int start = 0, end;
@@ -669,13 +671,13 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
 
   viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-  memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
-  memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
+  memcpy (reference[2 * t], shape1, N*sizeof(uchar));
+  memcpy (reference[2 * t + 1], shape2, N*sizeof(uchar));
   }
   
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
-      printf("%u ", newHap[i][j]);
+      printf("%u ", reference[i][j]);
     printf("\n");
   }
   
@@ -683,7 +685,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
-  for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
+  //for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
   for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
   free (shape1) ; free (shape2) ;
   free(pos);
