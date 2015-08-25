@@ -507,15 +507,12 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
           
           setSeq2(x, pos, seg[8][s], seg[9][s], idx1);
           if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
- //change??? seg[][s]
             tmp_seg[new_count++] = idx1;
-  //          seg[new_count++][s] = idx1;
           }
 
           setSeq2(x, pos, seg[8][s], seg[9][s], idx2);
           if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
             tmp_seg[new_count++] = idx2;
-      //      seg[new_count++][s] = idx2;  
           }
         }
 
@@ -574,7 +571,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
               cpl_index = i;
       }  
       f1[index][s]++;      //for origin[0];
-  //something wrong!      
       if (cpl_index < seg[10][s])
          f1[cpl_index][s]++;  //for origin[1];
     }
@@ -687,7 +683,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   //for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
   for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
-  free (shape1) ; free (shape2) ;
+  free(x), free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
   for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
@@ -901,7 +897,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
   }
 
   for ( s = seg_num - 2; s >= 0; --s) {
-//fprintf (stderr, "s: %d, path[s+1]: %d, phis[path[s+1]][s+1]: %d  \n", s, path[s+1], phis[path[s+1]][s+1]) ;
+  d//fprintf (stderr, "s: %d, path[s+1]: %d, phis[path[s+1]][s+1]: %d  \n", s, path[s+1], phis[path[s+1]][s+1]) ;
     path[s] = phis[path[s + 1]][s + 1];
   }
   //debug
