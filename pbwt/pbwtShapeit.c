@@ -377,7 +377,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
     pbwtCursorForwardsReadAD (up, k) ;
   }
   pbwtCursorDestroy (up) ;
-  fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
+  fprintf (stderr, "Made indices: \n") ; timeUpdate () ; 
   
   /**************************************/
 
@@ -429,6 +429,17 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   struct timeval tstart, tend;
   gettimeofday( &tstart, NULL );
   */
+  /*
+  seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
+  for ( i = 0; i < 8; ++i) { 
+    f1[i] = myalloc(N/3 + 1, int*);
+    g1[i] = myalloc(N/3 + 1, int*);
+  }
+  for ( i = 0; i < 64; ++i) { 
+    f2[i] = myalloc(N/3 + 1, int*);
+    g2[i] = myalloc(N/3 + 1, int*);
+  }
+  */
 
   int t;  //multi_time
   int TIMES = M/2;
@@ -439,11 +450,13 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
     L = t;
     seg_num = 1;
     num_1 = 0;
+    
     if (t != 0){
       for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
       for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
       for ( i = 0; i < 11; ++i) { free(seg[i]); }
     }
+    
     memcpy (origin[0], reference[2*L], N*sizeof(uchar));
     memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
     
@@ -457,10 +470,11 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
 
-    seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (num_1/3 + 1, int);
+
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
-    
+     
+    seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (num_1/3 + 1, int);
     for ( i = 0; i < 8; ++i) { 
       f1[i] = myalloc(num_1/3 + 1, int*);
       g1[i] = myalloc(num_1/3 + 1, int*);
@@ -469,6 +483,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
       f2[i] = myalloc(num_1/3 + 1, int*);
       g2[i] = myalloc(num_1/3 + 1, int*);
     }
+    
     //one segment count
     int start = 0, end;
     s = 0;
@@ -897,7 +912,7 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
   }
 
   for ( s = seg_num - 2; s >= 0; --s) {
-  d//fprintf (stderr, "s: %d, path[s+1]: %d, phis[path[s+1]][s+1]: %d  \n", s, path[s+1], phis[path[s+1]][s+1]) ;
+    //fprintf (stderr, "s: %d, path[s+1]: %d, phis[path[s+1]][s+1]: %d  \n", s, path[s+1], phis[path[s+1]][s+1]) ;
     path[s] = phis[path[s + 1]][s + 1];
   }
   //debug
