@@ -368,7 +368,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   /* build indexes */
   u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
   x = myalloc (N, uchar*) ; 
-  
   for (k = 0 ; k < N ; ++k)
   { 
     cc[k] = up->c ;
@@ -378,7 +377,6 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno) /* reporting the match num
   }
   pbwtCursorDestroy (up) ;
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ; 
-  
   /**************************************/
 
   /***************** my algorithm part ************/
