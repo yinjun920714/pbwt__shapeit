@@ -1,4 +1,9 @@
 #include "pbwt.h"
+//1 for fixed segment size (size = 3 heterozyogous genotypes)
+//2 for extensible segment size(min = 3)
+//3 for create the pbwt index for only heterozyogous genotypes
+//  and use the two table to shape the genotypes.
+
 
 static void countHelp(uchar *x, int start, int end, int *cc, int **u, int *f, int *g) {
   for ( int k = start; k < end; ++k ) {
@@ -624,6 +629,358 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
       f2[index1 * 8 + index2][s]++;      //for origin[0];
       if (cpl_index1 < seg[10][s] && cpl_index2 < seg[10][s+1])
       	   f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
+    }
+
+    //print f1, g1
+    /*
+    for (s = 0; s < seg_num; ++s) {
+      printf("segment num\t%d\n", s);
+      for (j = 0; j < seg[10][s]; ++j)
+        printf("%d\t:%d\t", seg[j][s], g1[j][s] - f1[j][s]);
+      printf("\n");
+    }
+    // print the count;
+    // print_one_seg;
+    printf("the first segment\n");
+    for (i = 0; i < 8; ++i)
+      printf("%d\n", g1[i][0] - f1[i][0]);
+    printf("\n\n");
+    // print following 
+    for ( i = 0; i < seg_num - 2; ++i) {
+      printf("segment num\t%d\n", i + 2);
+      printf("index\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",0,1,2,3,4,5,6,7);
+      for (j = 0; j < 8; ++j)
+        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", j,
+          g2[8*j+0][i] - f2[8*j+0][i],
+          g2[8*j+1][i] - f2[8*j+1][i],
+          g2[8*j+2][i] - f2[8*j+2][i],
+          g2[8*j+3][i] - f2[8*j+3][i],
+          g2[8*j+4][i] - f2[8*j+4][i],
+          g2[8*j+5][i] - f2[8*j+5][i],
+          g2[8*j+6][i] - f2[8*j+6][i],
+          g2[8*j+7][i] - f2[8*j+7][i]);
+      printf("\n\n");
+    }
+    */   
+  
+
+
+  //fprintf (stderr, "countTheMatch\n");
+  //timeUpdate () ;
+  // gettimeofday( &tend, NULL );
+  // int timeuse = 1000000 * ( tend.tv_sec - tstart.tv_sec ) + tend.tv_usec -tstart.tv_usec;
+  // timeuse /= TIMES;
+  // printf("time: %d us\n", timeuse);
+ 
+  //Shape it
+  //fprintf (stderr, "MostLikelySampling\n");
+  //MostLikelySampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  //fprintf (stderr, "After ML Sampling frag_num: \t\t\t\t%d\n", compare(origin,  shape1, shape2, N));
+  //timeUpdate () ;
+  
+  //fprintf (stderr, "globalSamplming\n");
+  //viterbiRandomSampling(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  //memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
+  //memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
+  //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
+
+  viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  memcpy (reference[2 * t], shape1, N*sizeof(uchar));
+  memcpy (reference[2 * t + 1], shape2, N*sizeof(uchar));
+  }
+  
+  for ( j = 0; j < N; ++j) {
+    for ( i = 0; i < M; ++i)
+      fprintf(out, "%u ", reference[i][j]);
+    fprintf(out, "\n");
+  }
+  fclose (out);
+  
+
+  /* cleanup */
+  free (cc) ;
+  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  //for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
+  for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
+  free(x), free (shape1) ; free (shape2) ;
+  free(pos);
+  for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
+  for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+  for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+  free(f1); free(g1); free(f2); free(g2);
+  for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
+}
+
+void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting the match number for each segment */ 
+{
+  if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
+  //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
+  //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  /***************** pbwt part *******************/
+  uchar *x;                 /* use for current query */
+  PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
+  int **u ;   /* stored indexes */
+  int *cc = myalloc (p->N, int) ;
+  int i, j, k, N = p->N, M = p->M ;
+  /* build indexes */
+  u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
+  x = myalloc (N, uchar*) ; 
+  for (k = 0 ; k < N ; ++k)
+  { 
+    cc[k] = up->c ;
+    pbwtCursorCalculateU (up) ;
+    memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
+    pbwtCursorForwardsReadAD (up, k) ;
+  }
+  pbwtCursorDestroy (up) ;
+  fprintf (stderr, "Made indices: \n") ; timeUpdate () ; 
+  /**************************************/
+
+  /***************** my algorithm part ************/
+  uchar **reference;
+  reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
+  uchar ch;
+  
+  for (int j = 0; j < p->N; ++j)
+    for (int i = 0; i < p->M; ++i)
+      { 
+        ch = fgetc(fp);
+        while(ch == ' ' || ch == '\n')
+          ch = fgetc(fp);  
+        reference[i][j] = ch -'0'; 
+      }
+  
+  /*
+  for (int j = 0; j < p->N; ++j) {
+    for (int i = 0; i < p->M; ++i)
+      printf("%u ", reference[i][j]);
+    printf("\n");
+  }
+  */
+  
+  int **f1, **g1 ;     /* start of match, and pbwt interval as in algorithm 5 */
+  int **f2, **g2 ;    /* next versions of the above, e' etc in algorithm 5 */
+  uchar **origin;
+  int s, seg_num = 1; /* for the segment number and current segment */
+  int *pos; /* for the 1 position for ref */
+  int num_1 = 0; /* for the num of 1 */
+  uchar *shape1;  /* for the shape seq1 */
+  uchar *shape2;  /* for the shape seq2 */
+  int **seg;      /* store the seg info */
+  double w = 1.0 / M;
+
+  //uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
+  pos = myalloc (N, int*) ;
+  f1 = myalloc (8, int*);
+  g1 = myalloc (8, int*);
+  f2 = myalloc (64, int*);
+  g2 = myalloc (64, int*);
+  //seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
+  shape1 = myalloc (N, uchar);
+  shape2 = myalloc (N, uchar);
+  origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
+
+  /* for time cal
+  struct timeval tstart, tend;
+  gettimeofday( &tstart, NULL );
+  */
+  /*
+  seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
+  for ( i = 0; i < 8; ++i) { 
+    f1[i] = myalloc(N/3 + 1, int*);
+    g1[i] = myalloc(N/3 + 1, int*);
+  }
+  for ( i = 0; i < 64; ++i) { 
+    f2[i] = myalloc(N/3 + 1, int*);
+    g2[i] = myalloc(N/3 + 1, int*);
+  }
+  */
+
+  int t;  //multi_time
+  int TIMES = M/2;
+  int L;
+  for (t = 0; t < TIMES; ++t) {
+    // for time repeat
+    //L = rand()%(M/2); 
+    L = t;
+    seg_num = 1;
+    num_1 = 0;
+    
+    if (t != 0){
+      for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+      for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+      for ( i = 0; i < 11; ++i) { free(seg[i]); }
+    }
+    
+    memcpy (origin[0], reference[2*L], N*sizeof(uchar));
+    memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
+    
+    for ( i = 0; i < N; ++i)
+      x[i] = origin[0][i] + origin[1][i];
+    
+    for ( i = 0, j = 0; i < N; ++i) {
+      if (x[i] == 1) {
+        pos[num_1++] = i;
+      }
+      x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
+    }
+
+
+    memcpy (shape1, x, N*sizeof(uchar)) ;
+    memcpy (shape2, x, N*sizeof(uchar)) ;
+     
+    seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (num_1/3 + 1, int);
+    for ( i = 0; i < 8; ++i) { 
+      f1[i] = myalloc(num_1/3 + 1, int*);
+      g1[i] = myalloc(num_1/3 + 1, int*);
+    }
+    for ( i = 0; i < 64; ++i) { 
+      f2[i] = myalloc(num_1/3 + 1, int*);
+      g2[i] = myalloc(num_1/3 + 1, int*);
+    }
+    
+    //one segment count
+    int start = 0, end;
+    s = 0;
+    int count, new_count;
+    int tmp_f1[8];
+    int tmp_g1[8];
+    int tmp_seg[8];
+    int idx1, idx2;
+    for ( i = 0; i < num_1 - 2;) {
+      count = 0;
+      seg[8][s] = i;
+      seg[9][s] = i + 2;
+      end = pos[seg[9][s]] + 1;
+      for ( j = 0; j < 8; ++j) {
+        setSeq2(x, pos, seg[8][s], seg[9][s], j);
+        seg[count][s] = j; f1[count][s] = 0; g1[count][s] = M;
+        countHelp(x, start, end, cc, u, &f1[count][s], &g1[count][s]);
+        if (g1[count][s] - f1[count][s] > 0)
+          count++;
+      }
+
+      while(count < 5) {
+        if (seg[9][s] - seg[8][s] > (maxGeno - 2)) break;
+        new_count = 0;
+        if (seg[9][s] < num_1 - 1) {
+          start = pos[seg[9][s]] + 1;
+          seg[9][s]++;
+          end = pos[seg[9][s]] + 1;
+        }
+        else 
+          break;  
+        
+        for (int ii = 0; ii < count; ++ii) {
+          idx1 = seg[ii][s] << 1;
+          idx2 = (seg[ii][s] << 1) + 1;
+          
+          setSeq2(x, pos, seg[8][s], seg[9][s], idx1);
+          if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+            tmp_seg[new_count++] = idx1;
+          }
+
+          setSeq2(x, pos, seg[8][s], seg[9][s], idx2);
+          if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+            tmp_seg[new_count++] = idx2;
+          }
+        }
+
+        for (int ii = 0; ii < new_count; ++ii) {
+          f1[ii][s] = tmp_f1[ii];
+          g1[ii][s] = tmp_g1[ii];
+          seg[ii][s] = tmp_seg[ii];
+        }
+
+      count = new_count;
+      }
+      start = pos[seg[9][s]] + 1;
+      i = seg[9][s] + 1;
+      seg[10][s] = count;
+      s++;
+    }
+
+    seg_num = s;
+
+    //initial f2, g2
+    for (i = 0; i < 64; ++i)
+      for (j = 0; j < seg_num; ++j) {
+        f2[i][j] = f1[i/8][j]; 
+        g2[i][j] = g1[i/8][j];
+      }
+
+    start = pos[seg[8][1]] + 1;  
+    for ( s = 1; s < seg_num; ++s) {
+      end = pos[seg[9][s]] + 1;
+      for ( i = 0; i < seg[10][s - 1]; ++i ) {
+        for ( j = 0; j < seg[10][s]; ++j ) {
+          setSeq2(x, pos, seg[8][s], seg[9][s], seg[j][s]);
+          countHelp(x, start, end, cc, u, &f2[j + i * 8][s - 1], &g2[j + i * 8][s - 1]);
+        }
+      } 
+      start = end;
+    }
+    
+    //minus the f1,g1 by 1 for the origin sequence
+    int target;
+    int cpl_target;
+    int index;
+    int cpl_index;
+    int bits;
+    for ( s = 0; s < seg_num; ++s) {
+      target = 0;
+      bits = seg[9][s] - seg[8][s];
+      for (i = 0; i <= bits; ++i)
+          target += (origin[0][pos[seg[8][s] + i]] << (bits - i));
+      cpl_target = (1 << (bits + 1)) - 1 - target;
+      cpl_index = seg[10][s];
+      for (i = 0; i < seg[10][s]; ++i) {
+          if (seg[i][s] == target)
+              index = i;
+          else if (seg[i][s] ==  cpl_target)
+              cpl_index = i;
+      }  
+      f1[index][s]++;      //for origin[0];
+      if (cpl_index < seg[10][s])
+         f1[cpl_index][s]++;  //for origin[1];
+    }
+
+    int target1, target2;
+    int cpl_target1, cpl_target2;
+    int index1, index2;
+    int cpl_index1, cpl_index2;
+    int bits1, bits2;
+    
+    for ( s = 0; s < seg_num - 1; ++s) {
+      target1 = 0;
+      bits1 = seg[9][s] - seg[8][s];
+      for (i = 0; i <= bits1; ++i)
+          target1 += (origin[0][pos[seg[8][s] + i]] << (bits1 - i));
+      cpl_target1 = (1 << (bits1 + 1)) - 1 - target1;
+      cpl_index1 = seg[10][s];
+      for (i = 0; i < seg[10][s]; ++i) {
+          if (seg[i][s] == target1)
+              index1 = i;
+          else if (seg[i][s] ==  cpl_target1)
+              cpl_index1 = i;
+      }
+
+      target2 = 0;
+      bits2 = seg[9][s+1] - seg[8][s+1];
+      for (i = 0; i <= bits2; ++i)
+          target2 += (origin[0][pos[seg[8][s+1] + i]] << (bits2 - i));
+      cpl_target2 = (1 << (bits2 + 1)) - 1 - target2;
+      cpl_index2 = seg[10][s+1];
+      for (i = 0; i < seg[10][s+1]; ++i) {
+          if (seg[i][s+1] == target2)
+              index2 = i;
+          else if (seg[i][s+1] ==  cpl_target2)
+              cpl_index2 = i;
+      }
+
+      f2[index1 * 8 + index2][s]++;      //for origin[0];
+      if (cpl_index1 < seg[10][s] && cpl_index2 < seg[10][s+1])
+           f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
     }
 
     //print f1, g1
