@@ -109,6 +109,36 @@ static int randomChoose(double **data, double *p, int s){
   return 0;
 }
 
+//create new pbwt index for heter only
+static PBWT *myReadHap(ucahr **reference, int *pos, int num_1) {
+  PBWT *p = 0;
+  int j ;
+  uchar *x ;    /* original, sorted, compressed */
+  int *a ;
+  Array xArray = arrayCreate (10000, uchar) ;
+  PbwtCursor *u ;
+
+  while ((*parseLine) (&p, fp, xArray)) /* create p first time round */
+    { if (!p->yz)   /* first line; p was just made! */
+  { p->yz = arrayCreate(4096*32, uchar) ;
+    u = pbwtCursorCreate (p, TRUE, TRUE) ;
+  }
+      x = arrp(xArray,0,uchar) ;
+      for (j = 0 ; j < p->M ; ++j) u->y[j] = x[u->a[j]] ;
+      pbwtCursorWriteForwards (u) ;
+      if (nCheckPoint && !(p->N % nCheckPoint)) pbwtCheckPoint (u, p) ;
+    }
+  pbwtCursorToAFend (u, p) ;
+
+  fprintf (stderr, "read %s file", type) ;
+  if (p->chrom) fprintf (stderr, " for chromosome %s", p->chrom) ;
+  fprintf (stderr, ": M, N are\t%d\t%d; yz length is %ld\n", p->M, p->N, arrayMax(p->yz)) ;
+
+  arrayDestroy(xArray) ; pbwtCursorDestroy (u) ;
+  
+  return p;  
+}
+
 void pbwtMatchCount1 (PBWT *p, FILE *fp) /* reporting the match number for each segment */ 
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
@@ -784,17 +814,6 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
   struct timeval tstart, tend;
   gettimeofday( &tstart, NULL );
   */
-  /*
-  seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (N/3 + 1, int);
-  for ( i = 0; i < 8; ++i) { 
-    f1[i] = myalloc(N/3 + 1, int*);
-    g1[i] = myalloc(N/3 + 1, int*);
-  }
-  for ( i = 0; i < 64; ++i) { 
-    f2[i] = myalloc(N/3 + 1, int*);
-    g2[i] = myalloc(N/3 + 1, int*);
-  }
-  */
 
   int t;  //multi_time
   int TIMES = M/2;
@@ -824,7 +843,10 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
       }
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
+    /* create new pbwt index  */
+    PBWT *newp = myReadHap(reference, pos, num_1);
 
+    /**************************/
 
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
