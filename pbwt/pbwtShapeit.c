@@ -807,6 +807,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
   }
   */
   
+  fprintf (stderr, "Input hap: \n") ; timeUpdate () ; 
   int **f1, **g1 ;     /* start of match, and pbwt interval as in algorithm 5 */
   int **f2, **g2 ;    /* next versions of the above, e' etc in algorithm 5 */
   uchar **origin;
@@ -843,13 +844,13 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
     L = t;
     seg_num = 1;
     num_1 = 0;
-    
+/*    
     if (t != 0){
       for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
       for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
       for ( i = 0; i < 11; ++i) { free(seg[i]); }
     }
-    
+*/  
     memcpy (origin[0], reference[2*L], N*sizeof(uchar));
     memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
     
@@ -889,8 +890,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
 
     if (newp) pbwtDestroy(newp) ;
     
-    fprintf (stderr, "Made new indices: \n") ; 
-
+    fprintf (stderr, "Made new indices %d: \n", t) ; timeUpdate () ; 
     /**************************************/
 /*
     memcpy (shape1, x, N*sizeof(uchar)) ;
