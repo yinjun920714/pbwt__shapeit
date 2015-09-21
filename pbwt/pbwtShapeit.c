@@ -892,7 +892,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
     fprintf (stderr, "Made new indices: \n") ; 
 
     /**************************************/
-
+/*
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
      
@@ -1049,7 +1049,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
       if (cpl_index1 < seg[10][s] && cpl_index2 < seg[10][s+1])
            f2[cpl_index1 * 8 + cpl_index2][s]++;  //for origin[1];
     }
-
+*/
     //print f1, g1
     /*
     for (s = 0; s < seg_num; ++s) {
@@ -1103,29 +1103,31 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
   //memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
 
+/*
   viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
   memcpy (reference[2 * t], shape1, N*sizeof(uchar));
   memcpy (reference[2 * t + 1], shape2, N*sizeof(uchar));
+*/
   }
-  
+/* 
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       fprintf(out, "%u ", reference[i][j]);
     fprintf(out, "\n");
   }
+*/
   fclose (out);
   
 
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
-  //for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
-  for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
+//  for (j = 0 ; j < 11; ++j) free(seg[j]) ; free (seg);
   free(x), free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
-  for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
-  for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+  //for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+  //for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
   free(f1); free(g1); free(f2); free(g2);
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
 }
