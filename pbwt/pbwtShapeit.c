@@ -863,6 +863,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
     }
     /* create new pbwt index  */
     PBWT *newp = myReadHap(reference, pos, num_1, M);
+    if (newp) pbwtDestroy(newp) ;
 
     /**************************/
 
