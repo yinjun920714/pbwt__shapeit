@@ -120,18 +120,13 @@ PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
   PbwtCursor *u ;
   int loop = 0;
 
-//fprintf (stderr, "num_1: %d  M:  %d  \n", num_1, mm) ;
   while (loop < num_1) {
-//fprintf (stderr, "loop %d  \n", loop) ;
     int m = 0;
-//fprintf (stderr, "1~~~~~~~~~  \n", m) ;
     while (m < mm) {
-//fprintf (stderr, "reference %u \n", reference[pos[loop]][m]) ;
       array(xArray,m,uchar) = reference[m][pos[loop]]; 
       m++;
     }
 
-//fprintf (stderr, "2~~~~~~~~~  \n", m) ;
     if (p && m != p->M) die ("length mismatch reading haps line") ;
     
     if (!p)
@@ -867,11 +862,36 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
       }
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
+
     /* create new pbwt index  */
     PBWT *newp = myReadHap(reference, pos, num_1, M);
-    if (newp) pbwtDestroy(newp) ;
-
     /**************************/
+    /***************** pbwt part *******************/
+    uchar *x2;                 /* use for current query */
+    PbwtCursor *up2 = pbwtCursorCreate (newp, TRUE, TRUE) ;
+    int **u2 ;   /* stored indexes */
+    int *cc2 = myalloc (newp->N, int) ;
+    int N2 = newp->N, M2 = newp->M ;
+    /* build indexes */
+    u2 = myalloc (N2,int*) ; for (i = 0 ; i < N2 ; ++i) u2[i] = myalloc (newp->M+1, int) ;
+    x2 = myalloc (N2, uchar*) ; 
+    for (k = 0 ; k < N2 ; ++k)
+    { 
+      cc2[k] = up2->c ;
+      pbwtCursorCalculateU (up2) ;
+      memcpy (u2[k], up2->u, (M2+1)*sizeof(int)) ;
+      pbwtCursorForwardsReadAD (up2, k) ;
+    }
+
+    pbwtCursorDestroy (up2) ;
+    free (cc2); free(x2);
+    for (j = 0 ; j < N2 ; ++j) free(u2[j]) ; free (u2) ;
+
+    if (newp) pbwtDestroy(newp) ;
+    
+    fprintf (stderr, "Made new indices: \n") ; 
+
+    /**************************************/
 
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
