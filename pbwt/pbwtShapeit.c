@@ -111,6 +111,7 @@ static int randomChoose(double **data, double *p, int s){
 
 //create new pbwt index for heter only
 PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
+
   PBWT *p = 0;
   int j ;
   uchar *x ;    /* original, sorted, compressed */
@@ -119,13 +120,18 @@ PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
   PbwtCursor *u ;
   int loop = 0;
 
+//fprintf (stderr, "num_1: %d  M:  %d  \n", num_1, mm) ;
   while (loop < num_1) {
+//fprintf (stderr, "loop %d  \n", loop) ;
     int m = 0;
+//fprintf (stderr, "1~~~~~~~~~  \n", m) ;
     while (m < mm) {
-      array(xArray,m,uchar) = reference[pos[loop]][m]; 
+//fprintf (stderr, "reference %u \n", reference[pos[loop]][m]) ;
+      array(xArray,m,uchar) = reference[m][pos[loop]]; 
       m++;
     }
 
+//fprintf (stderr, "2~~~~~~~~~  \n", m) ;
     if (p && m != p->M) die ("length mismatch reading haps line") ;
     
     if (!p)

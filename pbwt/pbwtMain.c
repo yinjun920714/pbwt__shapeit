@@ -441,6 +441,10 @@ int main (int argc, char *argv[])
       { FOPEN("read","r") ;
         FILE *out = fopen(argv[3], "w");
         pbwtMatchCount2 (p, fp, atoi(argv[2]), out) ; argc -= 4 ; argv += 4 ; }
+    else if (!strcmp (argv[0], "-matchCount3") && argc > 3)
+      { FOPEN("read","r") ;
+        FILE *out = fopen(argv[3], "w");
+        pbwtMatchCount3 (p, fp, atoi(argv[2]), out) ; argc -= 4 ; argv += 4 ; }
     else
       die ("unrecognised command %s\nType pbwt without arguments for help", *argv) ;
     timeUpdate() ;
