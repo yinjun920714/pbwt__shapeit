@@ -182,6 +182,7 @@ PBWT *pbwtReadMacs (FILE *fp) ;
 PBWT *pbwtReadVcfq (FILE *fp) ;	/* reduced VCF style file made by vcf query */
 PBWT *pbwtReadGen (FILE *fp, char *chrom) ;	/* gen file as used by impute2 (unphased) */
 PBWT *pbwtReadHap (FILE *fp, char *chrom) ; /* hap file as used by impute2 (phased) */
+PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) ;
 PBWT *pbwtReadPhase (FILE *fp) ; /* Li and Stephens PHASE file */
 void pbwtWriteHaplotypes (FILE *fp, PBWT *p) ;
 void pbwtWriteImputeRef (PBWT *p, char *fileNameRoot) ;

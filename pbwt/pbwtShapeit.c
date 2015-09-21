@@ -110,28 +110,46 @@ static int randomChoose(double **data, double *p, int s){
 }
 
 //create new pbwt index for heter only
-static PBWT *myReadHap(ucahr **reference, int *pos, int num_1) {
+PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
   PBWT *p = 0;
   int j ;
   uchar *x ;    /* original, sorted, compressed */
   int *a ;
   Array xArray = arrayCreate (10000, uchar) ;
   PbwtCursor *u ;
+  int loop = 0;
 
-  while ((*parseLine) (&p, fp, xArray)) /* create p first time round */
-    { if (!p->yz)   /* first line; p was just made! */
-  { p->yz = arrayCreate(4096*32, uchar) ;
-    u = pbwtCursorCreate (p, TRUE, TRUE) ;
-  }
-      x = arrp(xArray,0,uchar) ;
-      for (j = 0 ; j < p->M ; ++j) u->y[j] = x[u->a[j]] ;
-      pbwtCursorWriteForwards (u) ;
-      if (nCheckPoint && !(p->N % nCheckPoint)) pbwtCheckPoint (u, p) ;
+  while (loop < num_1) {
+    int m = 0;
+    while (m < mm) {
+      array(xArray,m,uchar) = reference[pos[loop]][m]; 
+      m++;
     }
-  pbwtCursorToAFend (u, p) ;
 
-  fprintf (stderr, "read %s file", type) ;
-  if (p->chrom) fprintf (stderr, " for chromosome %s", p->chrom) ;
+    if (p && m != p->M) die ("length mismatch reading haps line") ;
+    
+    if (!p)
+    { p = pbwtCreate (m, 0) ;
+      p->sites = arrayCreate(4096, Site) ;
+      array(xArray,p->M,uchar) = Y_SENTINEL ; /* sentinel required for packing */
+    }
+    /*
+    Site *s = arrayp(p->sites, arrayMax(p->sites), Site) ;
+    s->x = pos ;
+    dictAdd (variationDict, var, &s->varD) ;
+    */
+    ++p->N ;
+    if (!p->yz) {  /* first line; p was just made! */
+      p->yz = arrayCreate(4096*32, uchar) ;
+      u = pbwtCursorCreate (p, TRUE, TRUE) ;
+    }
+    x = arrp(xArray,0,uchar) ;
+    for (j = 0 ; j < p->M ; ++j) u->y[j] = x[u->a[j]] ;
+      pbwtCursorWriteForwards (u) ;
+    loop++;
+  }
+
+  pbwtCursorToAFend (u, p) ;
   fprintf (stderr, ": M, N are\t%d\t%d; yz length is %ld\n", p->M, p->N, arrayMax(p->yz)) ;
 
   arrayDestroy(xArray) ; pbwtCursorDestroy (u) ;
@@ -844,7 +862,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
     /* create new pbwt index  */
-    PBWT *newp = myReadHap(reference, pos, num_1);
+    PBWT *newp = myReadHap(reference, pos, num_1, M);
 
     /**************************/
 
