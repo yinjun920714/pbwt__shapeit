@@ -412,7 +412,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
-  //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
   /***************** pbwt part *******************/
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
@@ -434,6 +434,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
   /**************************************/
 
   /***************** my algorithm part ************/
+  /*
   uchar **reference;
   reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
   uchar ch;
@@ -446,7 +447,7 @@ void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno, FILE *out) /* reporting th
           ch = fgetc(fp);  
         reference[i][j] = ch -'0'; 
       }
-  
+  */
   /*
   for (int j = 0; j < p->N; ++j) {
     for (int i = 0; i < p->M; ++i)
