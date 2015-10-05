@@ -797,7 +797,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
     pbwtCursorForwardsReadAD (up, k) ;
   }
   pbwtCursorDestroy (up) ;
-  fprintf (stderr, "Made indices: \n") ; timeUpdate () ; 
+  //  fprintf (stderr, "Made indices: \n") ; timeUpdate () ; 
   /**************************************/
 
   /***************** my algorithm part ************/
@@ -878,7 +878,6 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
       pbwtCursorForwardsReadAD (subup, k) ;
     }
     pbwtCursorDestroy (subup) ;    
-    fprintf (stderr, "Made new indices %d: \n", t) ; timeUpdate () ; 
     /**************************************/
 
     memcpy (shape1, x, N*sizeof(uchar)) ;
