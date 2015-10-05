@@ -209,7 +209,7 @@ void matchSequencesSweepSparse (PBWT *p, PBWT *q, int nSparse,
 
 /* pbwtShapeit.c - functions implemented by Jun Yin */
 
-void pbwtMatchCount1 (PBWT *p, FILE *fp) ;
+void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) ;
 void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno, FILE *out) ;
 void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) ;
 void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;

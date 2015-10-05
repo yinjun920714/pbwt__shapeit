@@ -434,9 +434,10 @@ int main (int argc, char *argv[])
       }
     else if (!strcmp (argv[0], "-play"))
       { p = playGround (p) ; argc -= 1 ; argv += 1 ; }
-    else if (!strcmp (argv[0], "-matchCount1") && argc > 1)
+    else if (!strcmp (argv[0], "-matchCount1") && argc > 2)
       { FOPEN("read","r") ;
-        pbwtMatchCount1 (p, fp) ; argc -= 2 ; argv += 2 ; }
+        FILE *out = fopen(argv[2], "w");
+        pbwtMatchCount1 (p, fp, out) ; argc -= 3 ; argv += 3 ; }
     else if (!strcmp (argv[0], "-matchCount2") && argc > 3)
       { FOPEN("read","r") ;
         FILE *out = fopen(argv[3], "w");

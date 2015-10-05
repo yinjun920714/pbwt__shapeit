@@ -173,11 +173,11 @@ PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
   return p;  
 }
 
-void pbwtMatchCount1 (PBWT *p, FILE *fp) //fix heter number
+void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
-  //if (L < 0) die ("L %d for longWithin must be >= 0", L) ;
-  //uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+  /*
   uchar **reference;
   reference = myalloc(p->M, uchar*) ; for (int i = 0; i < p->M; ++i) reference[i] = myalloc(p->N, uchar*);
   uchar ch;
@@ -189,6 +189,7 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp) //fix heter number
           ch = fgetc(fp);  
         reference[i][j] = ch -'0'; 
       }
+  */
   /*
   for (int j = 0; j < p->N; ++j) {
     for (int i = 0; i < p->M; ++i)
@@ -406,9 +407,10 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp) //fix heter number
   
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
-      printf("%u ", newHap[i][j]);
-    printf("\n");
+      fprintf(out, "%u ", newHap[i][j]);
+    fprintf(out, "\n");
   }
+  fclose(out);
   
   /* cleanup */
   free (cc) ;
