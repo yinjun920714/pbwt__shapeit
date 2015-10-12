@@ -200,7 +200,7 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
   uchar **origin;
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
-  int **a, **d, **u ;   /* stored indexes */
+  int **u ;   /* stored indexes */
   int **f1, **g1 ;     /* start of match, and pbwt interval as in algorithm 5 */
   int **f2, **g2 ;    /* next versions of the above, e' etc in algorithm 5 */
   int i, j, k, N = p->N, M = p->M ;
@@ -214,8 +214,6 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
   uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
   
   /* build indexes */
-  a = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) a[i] = myalloc (p->M, int) ;
-  d = myalloc (N+1,int*) ; for (i = 0 ; i < N+1 ; ++i) d[i] = myalloc (p->M+1, int) ;
   u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
   x = myalloc (N, uchar*) ; 
   pos = myalloc (N, int*) ;
@@ -229,24 +227,16 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
   shape2 = myalloc (N, uchar);
 
   for (k = 0 ; k < N ; ++k)
-    { memcpy (a[k], up->a, M*sizeof(int)) ;
-      memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
+    { 
       cc[k] = up->c ;
       pbwtCursorCalculateU (up) ;
       memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
       pbwtCursorForwardsReadAD (up, k) ;
     }
-  memcpy (a[k], up->a, M*sizeof(int)) ;
-  memcpy (d[k], up->d, (M+1)*sizeof(int)) ;
   pbwtCursorDestroy (up) ;
   
 
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
-
-  //  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
-  for (j = 0 ; j < N ; ++j) free(a[j]) ; free (a) ;
-  for (j = 0 ; j < N ; ++j) free(d[j]) ; free (d) ;
-  
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
 
   /* for time cal
