@@ -835,7 +835,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
     memcpy (origin[0], reference[2*L], N*sizeof(uchar));
     memcpy (origin[1], reference[2*L + 1], N*sizeof(uchar));
     
-    /*
+    
     for ( i = 0; i < N; ++i)
       x[i] = origin[0][i] + origin[1][i];
     
@@ -850,11 +850,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
       }
       x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
     }
-    */
-    
-    for ( i = 0; i < N; ++i)
-      pos[i] = i;
-    num_1 = N;
+  
 
     /* create new pbwt index  */
     PBWT *subp = myReadHap(reference, pos, num_1, M);
@@ -877,23 +873,6 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
     }
     pbwtCursorDestroy (subup) ;    
     /**************************************/
-
-    uchar **referenceNew = pbwtHaplotypes (subp) ; /* haplotypes for reference  (M * N)  */
-    
-
-    for ( j = 0; j < N; ++j) {
-      for ( i = 0; i < M; ++i)
-        fprintf(out, "%u ", reference[i][j]);
-    fprintf(out, "\n");
-    }
-
-    for ( j = 0; j < N; ++j) {
-      for ( i = 0; i < M; ++i)
-        printf("%u ", referenceNew[i][j]);
-    printf("\n");
-    }
-
-    return;
 
     memcpy (shape1, x, N*sizeof(uchar)) ;
     memcpy (shape2, x, N*sizeof(uchar)) ;
