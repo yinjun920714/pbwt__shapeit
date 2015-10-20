@@ -211,8 +211,6 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
   uchar *shape2;  /* for the shape seq2 */
   double w = 1.0 / M;
   
-  uchar **newHap = myalloc(M, uchar*) ; for (i = 0; i < M; ++i) newHap[i] = myalloc(N, uchar*);  
-  
   /* build indexes */
   u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
   x = myalloc (N, uchar*) ; 
@@ -390,14 +388,14 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
 
   //fprintf (stderr, "globalSamplming\n");
   viterbiSampling1(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-  memcpy (newHap[2 * t], shape1, N*sizeof(uchar));
-  memcpy (newHap[2 * t + 1], shape2, N*sizeof(uchar));
+  memcpy (reference[2 * t], shape1, N*sizeof(uchar));
+  memcpy (reference[2 * t + 1], shape2, N*sizeof(uchar));
   //fprintf (stderr, "After global optimal Sampling frag_num :\t\t\t\t%d\n", compare(origin, shape1, shape2, N));
   }
   
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
-      fprintf(out, "%u ", newHap[i][j]);
+      fprintf(out, "%u ", reference[i][j]);
     fprintf(out, "\n");
   }
   fclose(out);
@@ -405,7 +403,6 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
   /* cleanup */
   free (cc) ;
   for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
-  for (j = 0 ; j < p->M ; ++j) free(newHap[j]) ; free (newHap) ;
   free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
