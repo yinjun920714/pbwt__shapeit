@@ -912,7 +912,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
         setSeq(x, pos, i, j);
         countHelp(x, start, end, cc, u, &f1[j][i], &g1[j][i]);
         subSetSeq(subx, i, j);
-        countHelp(x, i * 3, (i + 1) * 3, subcc, subu, &subf1[j][i], &subg1[j][i]);
+        countHelp(subx, i * 3, (i + 1) * 3, subcc, subu, &subf1[j][i], &subg1[j][i]);
       } 
       start = end;
     }
@@ -938,7 +938,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
           setSeq(x, pos, i, idx);
           countHelp(x, start, end, cc, u, &f2[idx + j * 8][i - 1], &g2[idx + j * 8][i - 1]);
           subSetSeq(subx, i, idx);
-          countHelp(x, i * 3, (i + 1) * 3, subcc, subu, &subf2[idx + j * 8][i - 1], &subg2[idx + j * 8][i - 1]);
+          countHelp(subx, i * 3, (i + 1) * 3, subcc, subu, &subf2[idx + j * 8][i - 1], &subg2[idx + j * 8][i - 1]);
         }
       }
       start = end;
@@ -1265,14 +1265,14 @@ void viterbiSampling3(int **g1, int **f1, int **g2, int **f2, int **subg1, int *
       int maxIdx = 0;
       double maxVal = data[0][s] * ((double)(g2[i][s] - f2[i][s] + 1.0/8) / (totalCon[0] + 1)) 
                       * data[7][s] * ((double)(g2[63 - i][s] - f2[63 - i][s] + 1.0/8) / (totalCon[7] + 1));
-     tmp = data[0][s] * ((double)(subg2[i][s] - subf2[i][s] + 1.0/8) / (subTotalCon[0] + 1)) 
+      tmp = data[0][s] * ((double)(subg2[i][s] - subf2[i][s] + 1.0/8) / (subTotalCon[0] + 1)) 
                       * data[7][s] * ((double)(subg2[63 - i][s] - subf2[63 - i][s] + 1.0/8) / (subTotalCon[7] + 1));
       maxVal = (1 - coefficent) * maxVal + coefficent * tmp;
 
       for ( j = 1; j < 8; ++j) {
         double val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1))
                       * data[7 - j][s] * ((double)(g2[(7 - j) * 8 + 7 - i][s] - f2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (totalCon[7 - j] + 1));
-       tmp = data[j][s] * ((double)(subg2[j * 8 + i][s] - subf2[j * 8 + i][s] + 1.0/8) / (subTotalCon[j] + 1))
+        tmp = data[j][s] * ((double)(subg2[j * 8 + i][s] - subf2[j * 8 + i][s] + 1.0/8) / (subTotalCon[j] + 1))
                    * data[7 - j][s] * ((double)(subg2[(7 - j) * 8 + 7 - i][s] - subf2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (subTotalCon[7 - j] + 1));
         val = (1 - coefficent) * val + coefficent * tmp;
         if (val > maxVal) { maxIdx = j; maxVal = val;} }
