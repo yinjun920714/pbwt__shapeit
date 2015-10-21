@@ -245,11 +245,11 @@ void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) //fix heter number
   int t;  //multi_time
   int TIMES = M/2;
   int L;
-  for (t = 0; t < 1; ++t) {
+  for (t = 0; t < TIMES; ++t) {
     // for time repeat
     //L = rand()%(M/2); 
     L = t;
-    seg_num = 0;
+    seg_num = 1;
     num_1 = 0;
 
     if (t != 0){
@@ -825,7 +825,7 @@ void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) //combine the p
   int t;  //multi_time
   int TIMES = M/2;
   int L;
-  for (t = 0; t < 1; ++t) {
+  for (t = 0; t < TIMES; ++t) {
     L = t;
     seg_num = 1; 
     num_1 = 0; 
@@ -1244,7 +1244,7 @@ void viterbiSampling3(int **g1, int **f1, int **g2, int **f2, int **subg1, int *
 
   for( i = 0; i < 8; ++i) {
     data[i][0] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (g1[7 - i][0] - f1[7 - i][0])) / (total * total)); 
-   // tmp = (subtotal == 0 ? 0 : (double)((subg1[i][0] - subf1[i][0]) * (subg1[7 - i][0] - subf1[7 - i][0])) / (subtotal * subtotal)); 
+    tmp = (subtotal == 0 ? 0 : (double)((subg1[i][0] - subf1[i][0]) * (subg1[7 - i][0] - subf1[7 - i][0])) / (subtotal * subtotal)); 
     data[i][0] = (1 - coefficent) * data[i][0] + coefficent * tmp;
   }
   addWeight(data, 0, w);
@@ -1265,15 +1265,15 @@ void viterbiSampling3(int **g1, int **f1, int **g2, int **f2, int **subg1, int *
       int maxIdx = 0;
       double maxVal = data[0][s] * ((double)(g2[i][s] - f2[i][s] + 1.0/8) / (totalCon[0] + 1)) 
                       * data[7][s] * ((double)(g2[63 - i][s] - f2[63 - i][s] + 1.0/8) / (totalCon[7] + 1));
-     // tmp = data[0][s] * ((double)(subg2[i][s] - subf2[i][s] + 1.0/8) / (subTotalCon[0] + 1)) 
-     //                 * data[7][s] * ((double)(subg2[63 - i][s] - subf2[63 - i][s] + 1.0/8) / (subTotalCon[7] + 1));
+     tmp = data[0][s] * ((double)(subg2[i][s] - subf2[i][s] + 1.0/8) / (subTotalCon[0] + 1)) 
+                      * data[7][s] * ((double)(subg2[63 - i][s] - subf2[63 - i][s] + 1.0/8) / (subTotalCon[7] + 1));
       maxVal = (1 - coefficent) * maxVal + coefficent * tmp;
 
       for ( j = 1; j < 8; ++j) {
         double val = data[j][s] * ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon[j] + 1))
                       * data[7 - j][s] * ((double)(g2[(7 - j) * 8 + 7 - i][s] - f2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (totalCon[7 - j] + 1));
-       // tmp = data[j][s] * ((double)(subg2[j * 8 + i][s] - subf2[j * 8 + i][s] + 1.0/8) / (subTotalCon[j] + 1))
-         //             * data[7 - j][s] * ((double)(subg2[(7 - j) * 8 + 7 - i][s] - subf2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (subTotalCon[7 - j] + 1));
+       tmp = data[j][s] * ((double)(subg2[j * 8 + i][s] - subf2[j * 8 + i][s] + 1.0/8) / (subTotalCon[j] + 1))
+                   * data[7 - j][s] * ((double)(subg2[(7 - j) * 8 + 7 - i][s] - subf2[(7 - j) * 8 + 7 - i][s] + 1.0/8) / (subTotalCon[7 - j] + 1));
         val = (1 - coefficent) * val + coefficent * tmp;
         if (val > maxVal) { maxIdx = j; maxVal = val;} }
       data[i][s + 1] = maxVal;
