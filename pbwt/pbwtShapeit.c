@@ -123,7 +123,6 @@ static int randomChoose(double **data, double *p, int s){
       return i;
   return 0;
 }
-
 //create new pbwt index for heter only
 PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
 
