@@ -173,8 +173,6 @@ PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
   }
 
   pbwtCursorToAFend (u, p) ;
-  fprintf (stderr, ": M, N are\t%d\t%d; yz length is %ld\n", p->M, p->N, arrayMax(p->yz)) ;
-
   arrayDestroy(xArray) ; pbwtCursorDestroy (u) ;
   
   return p;  
