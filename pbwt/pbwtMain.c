@@ -434,18 +434,15 @@ int main (int argc, char *argv[])
       }
     else if (!strcmp (argv[0], "-play"))
       { p = playGround (p) ; argc -= 1 ; argv += 1 ; }
-    else if (!strcmp (argv[0], "-matchCount1") && argc > 2)
-      { FOPEN("read","r") ;
-        FILE *out = fopen(argv[2], "w");
-        pbwtMatchCount1 (p, fp, out) ; argc -= 3 ; argv += 3 ; }
-    else if (!strcmp (argv[0], "-matchCount2") && argc > 3)
-      { FOPEN("read","r") ;
-        FILE *out = fopen(argv[3], "w");
-        pbwtMatchCount2 (p, fp, atoi(argv[2]), out) ; argc -= 4 ; argv += 4 ; }
-    else if (!strcmp (argv[0], "-matchCount3") && argc > 2)
-      { FOPEN("read","r") ;
-        FILE *out = fopen(argv[2], "w");
-        pbwtMatchCount3 (p, fp, out, atoi(argv[3])) ; argc -= 4 ; argv += 4 ; }
+    else if (!strcmp (argv[0], "-shapeIt1") && argc > 1)
+      { FOPEN("write","w") ;
+        pbwtShapeIt1 (p, fp) ; argc -= 2 ; argv += 2 ; }
+    else if (!strcmp (argv[0], "-shapeIt2") && argc > 2)
+      { FOPEN("write","w") ;
+        pbwtShapeIt2 (p, atoi(argv[1]), fp) ; argc -= 3 ; argv += 3 ; }
+    else if (!strcmp (argv[0], "-shapeIt3") && argc > 2)
+      { FOPEN("write","w") ;
+        pbwtShapeIt3 (p, atoi(argv[1]), fp) ; argc -= 3 ; argv += 3 ; }
     else
       die ("unrecognised command %s\nType pbwt without arguments for help", *argv) ;
     timeUpdate() ;

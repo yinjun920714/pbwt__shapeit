@@ -207,13 +207,12 @@ void matchSequencesSweep (PBWT *p, PBWT *q, void (*report)(int, int, int, int)) 
 void matchSequencesSweepSparse (PBWT *p, PBWT *q, int nSparse,
 				void (*report)(int, int, int, int, BOOL)) ;
 
-/* pbwtShapeit.c - functions implemented by Jun Yin */
 
-void pbwtMatchCount1 (PBWT *p, FILE *fp, FILE *out) ;
-void pbwtMatchCount2 (PBWT *p, FILE *fp, int maxGeno, FILE *out) ;
-void pbwtMatchCount3 (PBWT *p, FILE *fp, FILE *out, int percent) ;
+/* pbwtShapeit.c - functions implemented by Jun Yin */
+void pbwtShapeIt1 (PBWT *p, FILE *out) ;
+void pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) ;
+void pbwtShapeIt3 (PBWT *p, int percent, FILE *out) ;
 void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
-void Sampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void viterbiSampling1(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void viterbiRandomSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
