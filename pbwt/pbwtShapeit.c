@@ -99,7 +99,7 @@ static void addWeight(double **data, int s, double w) {
 
 /****************************************************************
 Normalized the data array, s th row
-This row has size element
+This row has size elements
 ****************************************************************/
 static void Normalized2(double **data, int s, int size) {
   double total;
@@ -111,7 +111,7 @@ static void Normalized2(double **data, int s, int size) {
 
 /****************************************************************
 Add the weight for the data array, s th row
-This row has size element
+This row has size elements
 ****************************************************************/
 static void addWeight2(double **data, int s, double w, int size) {
   if (size == 0) return;
