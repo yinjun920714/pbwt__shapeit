@@ -254,6 +254,9 @@ int main (int argc, char *argv[])
       fprintf (stderr, "  -buildReverse             build reverse pbwt\n") ;
       fprintf (stderr, "  -readGeneticMap <file>    read Oxford format genetic map file\n") ;
       fprintf (stderr, "  -4hapsStats               mu:rho 4 hap test stats\n") ;
+      fprintf (stderr, "  -shapeIt1 <file>              shapeIt with fixed heterozyogous in each block\n") ;
+      fprintf (stderr, "  -shapeIt2 maxGenoNum <file>   shapeIt with extensible heterozyogous in each block, maxGenoNum is max num of heterozyogous in one block \n") ;
+      fprintf (stderr, "  -shapeIt3 percentage <file>   shapeIt with heterozyogous only probability and original probability, percentage 0 represents only original probability, 100 represents only heterozyogous only probability\n") ;
     }
 
   timeUpdate() ;
