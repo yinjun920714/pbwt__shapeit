@@ -1,8 +1,7 @@
 #include "pbwt.h"
-//1 for fixed segment size (size = 3 heterozyogous genotypes)
-//2 for extensible segment size(min = 3)
-//3 for create the pbwt index for only heterozyogous genotypes
-//  and use the two table to shape the genotypes.
+//pbwtShapeIt1 for fixed segment size (size = 3 heterozyogous genotypes)
+//pbwtShapeIt2 for extensible segment size(min = 3)
+//pbwtShapeIt3 for combining the original conditional probability and heterozyogous only conditional probability
 
 /****************************************************************
 Go through sequence "x" from the site position "start" to "end"
@@ -110,6 +109,19 @@ static void Normalized2(double **data, int s, int size) {
 }
 
 /****************************************************************
+Same as the Normalized2, used in randomSampling
+Normalized the data array
+This row has size elements
+****************************************************************/
+static void NormalizedRandom(double *data, int size) {
+  double total;
+  for ( int i = 0; i < size; ++i)
+    total += data[i];
+  for ( int i = 0; i< size; ++i)
+    data[i] = data[i]/total;
+}
+
+/****************************************************************
 Add the weight for the data array, s th row
 This row has size elements
 ****************************************************************/
@@ -117,6 +129,17 @@ static void addWeight2(double **data, int s, double w, int size) {
   if (size == 0) return;
   for ( int i = 0; i < size; ++i)
     data[i][s] = w / size + (1 - w) * data[i][s];
+}
+
+/****************************************************************
+Same as the addWeight2, used in randomSampling
+Add the weight for the data array
+This row has size elements
+****************************************************************/
+static void addWeightRandom(double *data, double w, int size) {
+  if (size == 0) return;
+  for ( int i = 0; i < size; ++i)
+    data[i] = w / size + (1 - w) * data[i];
 }
 
 /****************************************************************
@@ -132,6 +155,28 @@ static int randomChoose(double **data, double *p, int s){
   double num = rand() * 1.0;
   for (int i = 7; i > 0; --i)
     if (num >= RAND_MAX * p[i])
+      return i;
+  return 0;
+}
+
+/****************************************************************
+Same as the randomChoose, used in randomSampling
+must used after normalized data. 
+choosing i probability is proportional to data[i]
+*****************************************************************/
+static int randomChooseRandom(double *data, int size){
+  double tmp = data[0];
+  double pre = data[0];
+  data[0] = 0;
+  for (int i = 1; i < size; ++i) {
+    tmp = data[i];
+    data[i] = pre;
+    pre += tmp;
+  }
+
+  double num = rand() * 1.0;
+  for (int i = size - 1; i > 0; --i)
+    if (num >= RAND_MAX * data[i])
       return i;
   return 0;
 }
@@ -590,7 +635,8 @@ void pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) //extensibile heter number
     }
   
   //shapeit for this individual
-  viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  //viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  randomSampling(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w);
   memcpy (reference[2 * t], shape1, N*sizeof(uchar));
   memcpy (reference[2 * t + 1], shape2, N*sizeof(uchar));
   
@@ -1249,4 +1295,88 @@ void viterbiRandomSampling(int **g1, int **f1, int **g2, int **f2, int *pos, int
   for (i = 0 ; i < 8 ; ++i) free(data[i]) ; free (data) ;
 }
 
+/****************************************************************
+Not Used  Yet 
+Using Random algorithm to sampling the sequence
+Each block is choosed randomly, but the probability is proportional to the conditional probability.
+****************************************************************/
+void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
+  int i, j, cpl_i, cpl_j, s = 0;
+  int target;
+
+  double *data; //condition probability
+  data = myalloc(8, double);
+  
+  int *path;
+  path = myalloc(seg_num, int);
+  
+  int total = 0;
+  for( i = 0; i < seg[10][s]; ++i) {
+    total += ( g1[i][0] - f1[i][0] ); }
+
+  for( i = 0; i < seg[10][s]; ++i) {
+    target = (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[i][s];    
+    //find the complementary(cpl) sequence index
+    for (cpl_i = 0; cpl_i < seg[10][s]; ++cpl_i) {
+      if(seg[cpl_i][s] == target)
+        break;  
+    }
+    //first block, marginal probability
+    data[i] = (total == 0 ? 0 : (double)((g1[i][0] - f1[i][0]) * (cpl_i < seg[10][s] ? (g1[cpl_i][0] - f1[cpl_i][0]) / total : 0.001)) / total); 
+  }
+  addWeightRandom(data, w, seg[10][0]);
+  NormalizedRandom(data, seg[10][0]);
+  path[0] = randomChooseRandom(data, seg[10][0]);
+
+  int prev;
+  int target1, target2;
+  int totalCon1, totalCon2;
+  //i, target1 for current block;
+  //j, target2 for prev block;
+  //j = path[s];
+  for( s = 0; s < seg_num - 1; ++s) {
+    j = path[s];
+    totalCon1 = g1[j][s] - f1[j][s];
+    
+    //find the complementary(cpl) sequence index of previous block
+    target2 = (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[j][s]; 
+    for (cpl_j = 0; cpl_j < seg[10][s]; ++cpl_j) {
+      if(seg[cpl_j][s] == target2)
+        break;
+    }
+    if (cpl_j == seg[10][s])
+        totalCon2 = g1[cpl_j][s] - f1[cpl_j][s];
+    else
+        totalCon2 = 0;
+
+    for ( i = 0; i < seg[10][s+1]; ++i) { 
+      //find the complementary(cpl) sequence index of current block
+      target1 = (1 << (seg[9][s+1] - seg[8][s+1] + 1)) - 1 - seg[i][s+1]; 
+      for (cpl_i = 0; cpl_i < seg[10][s+1]; ++cpl_i) {
+        if(seg[cpl_i][s+1] == target1)
+          break;  
+      }
+      
+      double val;
+      if (cpl_i == seg[10][s+1] || cpl_j == seg[10][s])
+        //didn't have the complementary sequence, give a small weight
+        data[i] = ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon1 + 1)) * 0.001;
+      else
+        //calculate the condition probability for each states
+        data[i] = ((double)(g2[j * 8 + i][s] - f2[j * 8 + i][s] + 1.0/8) / (totalCon1 + 1))
+                    * ((double)(g2[cpl_j * 8 + cpl_i][s] - f2[cpl_j * 8 + cpl_i][s] + 1.0/8) / (totalCon2 + 1));
+    }
+    addWeightRandom(data, w, seg[10][s+1]);
+    NormalizedRandom(data, seg[10][s+1]);
+    path[s+1] = randomChooseRandom(data, seg[10][s+1]);
+  }
+  
+  for ( s = 0; s < seg_num; ++s) {
+    setSeq2(shape1, pos, seg[8][s], seg[9][s], seg[path[s]][s]);
+    setSeq2(shape2, pos, seg[8][s], seg[9][s], (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[path[s]][s]);
+  }
+  
+  free(path);
+  free (data);
+}
 /******************* end of file *******************/
