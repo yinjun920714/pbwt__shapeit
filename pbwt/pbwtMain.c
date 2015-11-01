@@ -449,6 +449,10 @@ int main (int argc, char *argv[])
       { 
         FILE *out = fopen(argv[2], "w");
         pbwtShapeIt3 (p, atoi(argv[1]), out) ; argc -= 3 ; argv += 3 ; }
+    else if (!strcmp (argv[0], "-shapeItMulti") && argc > 3)
+      { 
+        FILE *out = fopen(argv[3], "w");
+        shapeItMulti (p, atoi(argv[1]), atoi(argv[2]), out) ; argc -= 4 ; argv += 4 ; }
     else
       die ("unrecognised command %s\nType pbwt without arguments for help", *argv) ;
     timeUpdate() ;

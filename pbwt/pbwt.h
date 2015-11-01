@@ -210,7 +210,7 @@ void matchSequencesSweepSparse (PBWT *p, PBWT *q, int nSparse,
 
 /* pbwtShapeit.c - functions implemented by Jun Yin */
 void pbwtShapeIt1 (PBWT *p, FILE *out) ;
-void pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) ;
+uchar** pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) ;
 void pbwtShapeIt3 (PBWT *p, int percent, FILE *out) ;
 void MostLikelySampling(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void viterbiSampling1(int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
@@ -219,8 +219,10 @@ void viterbiSampling2(int **seg, int **g1, int **f1, int **g2, int **f2, int *po
 void viterbiSampling3(int **g1, int **f1, int **g2, int **f2, int **subg1, int **subf1, int **subg2, int **subf2, 
   int *pos, int seg_num, uchar *shape1, uchar *shape2, double w, double coefficent) ;
 void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
-/* pbwtImpute.c */
+void shapeItMulti(PBWT *p, int maxGeno, int times, FILE *out) ;
 
+
+/* pbwtImpute.c */
 void imputeExplore (PBWT *p, int test) ;
 PBWT *phase (PBWT *p, int nSparse) ;
 PBWT *referencePhase (PBWT *p, char *fileNameRoot) ;

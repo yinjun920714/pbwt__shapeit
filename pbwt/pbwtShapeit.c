@@ -394,7 +394,7 @@ void pbwtShapeIt1 (PBWT *p, FILE *out) //fix heter number
 Read the PBWT file and ShapeIt, output result hap into FILE out 
 Each Block has extensible heterozyogous genotypes number, but the max num is maxGeno
 ****************************************************************/
-void pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) //extensibile heter number
+uchar** pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) //extensibile heter number
 {
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
   uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
@@ -646,23 +646,55 @@ void pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) //extensibile heter number
   for ( j = 0 ; j < 11; ++j) free(seg[j]) ; 
   }
   
+  /*
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       fprintf(out, "%u ", reference[i][j]);
     fprintf(out, "\n");
   }
   fclose (out);
-  
+  */
 
   /* cleanup */
   free (cc) ;
-  for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  //for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
   free(x), free (shape1) ; free (shape2) ;
   free(pos);
   for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
   free (seg); free(f1); free(g1); free(f2); free(g2);
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
+
+  return reference;
 }
+
+void shapeItMulti(PBWT *p, int maxGeno, int times, FILE *out) {
+    int *pos = myalloc (p->N, int) ;
+    int N = p->N;
+    int M = p->M;
+    for (int i = 0; i < N; ++i)
+      pos[i] = i;
+
+    uchar **reference = pbwtShapeIt2(p, maxGeno, out);
+
+    for (int i = 1; i < times; ++i) {
+      if (p) pbwtDestroy(p) ;
+      for (int j = 0 ; j < M ; ++j) free(reference[j]) ; free (reference) ;
+      p = myReadHap(reference, pos, N, M);
+      reference = pbwtShapeIt2(p, maxGeno, out);
+    }
+
+
+    for (int j = 0; j < N; ++j) {
+      for (int i = 0; i < M; ++i)
+        fprintf(out, "%u ", reference[i][j]);
+      fprintf(out, "\n");
+    }
+    fclose (out);
+  
+    free(pos);
+    for (int i = 0 ; i < M ; ++i) free(reference[i]) ; free (reference) ;
+}
+
 
 /****************************************************************
 Read the PBWT file and ShapeIt, output result hap into FILE out 
