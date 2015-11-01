@@ -1303,7 +1303,7 @@ Each block is choosed randomly, but the probability is proportional to the condi
 void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w){
   int i, j, cpl_i, cpl_j, s = 0;
   int target;
-
+ printf("1~~~~~~~~~~~~~\n"); 
   double *data; //condition probability
   data = myalloc(8, double);
   
@@ -1313,6 +1313,7 @@ void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos,
   int total = 0;
   for( i = 0; i < seg[10][s]; ++i) {
     total += ( g1[i][0] - f1[i][0] ); }
+ printf("2~~~~~~~~~~~~~\n"); 
 
   for( i = 0; i < seg[10][s]; ++i) {
     target = (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[i][s];    
@@ -1327,6 +1328,7 @@ void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos,
   addWeightRandom(data, w, seg[10][0]);
   NormalizedRandom(data, seg[10][0]);
   path[0] = randomChooseRandom(data, seg[10][0]);
+ printf("3~~~~~~~~~~~~~\n"); 
 
   int prev;
   int target1, target2;
@@ -1337,7 +1339,8 @@ void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos,
   for( s = 0; s < seg_num - 1; ++s) {
     j = path[s];
     totalCon1 = g1[j][s] - f1[j][s];
-    
+     printf("4~~~~~~~~~~~~~\n"); 
+
     //find the complementary(cpl) sequence index of previous block
     target2 = (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[j][s]; 
     for (cpl_j = 0; cpl_j < seg[10][s]; ++cpl_j) {
@@ -1370,12 +1373,14 @@ void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos,
     NormalizedRandom(data, seg[10][s+1]);
     path[s+1] = randomChooseRandom(data, seg[10][s+1]);
   }
-  
+  printf("5~~~~~~~~~~~~\n"); 
+
   for ( s = 0; s < seg_num; ++s) {
     setSeq2(shape1, pos, seg[8][s], seg[9][s], seg[path[s]][s]);
     setSeq2(shape2, pos, seg[8][s], seg[9][s], (1 << (seg[9][s] - seg[8][s] + 1)) - 1 - seg[path[s]][s]);
   }
-  
+  printf("6~~~~~~~~~~~~~\n"); 
+
   free(path);
   free (data);
 }
