@@ -678,8 +678,8 @@ void shapeItMulti(PBWT *p, int maxGeno, int times, FILE *out) {
 
     for (int i = 1; i < times; ++i) {
       if (p) pbwtDestroy(p) ;
-      for (int j = 0 ; j < M ; ++j) free(reference[j]) ; free (reference) ;
       p = myReadHap(reference, pos, N, M);
+      for (int j = 0 ; j < M ; ++j) free(reference[j]) ; free (reference) ;
       reference = pbwtShapeIt2(p, maxGeno, out);
     }
 
