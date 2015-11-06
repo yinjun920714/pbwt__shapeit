@@ -635,8 +635,8 @@ uchar** pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) //extensibile heter numbe
     }
   
   //shapeit for this individual
-  //viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
-  randomSampling(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w);
+  viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+  //randomSampling(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w);
   memcpy (reference[2 * t], shape1, N*sizeof(uchar));
   memcpy (reference[2 * t + 1], shape2, N*sizeof(uchar));
   
