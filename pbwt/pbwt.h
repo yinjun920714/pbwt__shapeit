@@ -220,6 +220,8 @@ void viterbiSampling3(int **g1, int **f1, int **g2, int **f2, int **subg1, int *
   int *pos, int seg_num, uchar *shape1, uchar *shape2, double w, double coefficent) ;
 void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos, int seg_num, uchar *shape1, uchar *shape2, double w) ;
 void shapeItMulti(PBWT *p, int maxGeno, int times, FILE *out) ;
+void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out) ;
+void pbwtCreateGeno (PBWT *p, FILE *out) ;
 
 
 /* pbwtImpute.c */

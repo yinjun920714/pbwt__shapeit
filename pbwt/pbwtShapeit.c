@@ -181,6 +181,70 @@ static int randomChooseRandom(double *data, int size){
   return 0;
 }
 
+static uchar** readGeno(PBWT *p, FILE *in, int* individual_num) {
+    uchar** geno = 0 ;
+    uchar* x = myalloc(10000, uchar) ;
+    int count = 0;
+    while (!feof(in)) {
+      char c = getc(in) ;
+      if (c == '\n') break; 
+      else if (isspace(c))
+        continue;
+      else if (c < '0' || c > '2') {
+        fprintf(stderr, "%s\n", "unrecognized character");
+        count = 0;
+        break;
+      } else {
+        x[count++] = c;
+      }
+    }
+    if (count == 0) {
+      free(x);
+      return geno;
+    }
+    
+    *individual_num = count;
+    geno = myalloc(p->N, uchar*) ;
+    for (int i = 0; i < p->N; ++i)
+      geno[i] = myalloc(count, uchar);
+
+    memcpy (geno[0], x, count*sizeof(uchar));
+    free(x);
+
+    int flag = 1; //if flag == 0 read geno something wrong
+    
+    int i = 1; 
+    int j = 0;
+    while (!feof(in) && i < p->N) {
+      char c = getc(in);
+      if (c == '\n') {
+        if (j == count) {
+          j = 0;
+          i++;
+        } else {
+          fprintf(stderr, "%s\n", "different indivuals");
+          flag = 0;
+        }
+        break;
+      } else if (isspace(c)) {
+        continue;
+      } else if (c < '0' || c > '2') {
+        fprintf(stderr, "%s\n", "unrecognized character");
+        flag = 0;
+        break;
+      } else {
+        geno[i][j++] = c;
+      }
+    }
+
+    if ((!feof(in)) || (i != p->N)) {
+      fprintf(stderr, "%s\n", "wrong geno input");
+      for (int i = 0; i < p->N; ++i) free(geno[i]); free(geno);
+      *individual_num = 0;
+    }
+    return geno;
+}
+
 /* create new pbwt index for heterozyogous only */
 PBWT *myReadHap(uchar **reference, int *pos, int num_1, int mm) {
 
@@ -667,7 +731,253 @@ uchar** pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) //extensibile heter numbe
   return reference;
 }
 
-void shapeItMulti(PBWT *p, int maxGeno, int times, FILE *out) {
+void pbwtCreateGeno (PBWT *p, FILE *out) 
+{
+    uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+    int N = p->N;
+    int M = p->M;
+
+    uchar **geno;
+    geno = myalloc(N, uchar*) ;    //(N * (M/2))
+    for (int i = 0; i < N; ++i)
+      geno[i] = myalloc(M/2, uchar);
+    
+    //calcualte the geno
+    for (int i = 0; i < N; ++i) {
+      for (int j = 0; j < M/2; ++j) {
+        geno[i][j] = reference[j * 2][i] + reference[j * 2 + 1][i];
+      }
+    }
+
+    for (int i = 0; i < N; ++i) {
+      for (int j = 0; j < M/2; ++j)
+        fprintf(out, "%u ", geno[i][j]);
+      fprintf(out, "\n");
+    }
+
+    fclose (out);
+
+    for (int i = 0 ; i < M ; ++i) free(reference[i]) ; free (reference) ;
+    for (int i = 0 ; i < N ; ++i) free(geno[i]) ; free (geno) ;
+}
+
+void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out) 
+{
+  int individual_num = 0;
+  uchar **geno = readGeno(p, in, &individual_num);
+  if (!individual_num) return;
+
+  uchar **hap;
+  int i, j;
+  hap = myalloc(2 * individual_num, uchar*);
+  for (i = 0; i < 2 * individual_num; ++i)
+    hap[i] = myalloc(p->N, uchar);
+
+  /***************** pbwt part *******************/
+  uchar *x;                 /* use for current query */
+  PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
+  int **u ;   /* stored indexes */
+  int *cc = myalloc (p->N, int) ;
+  int k, N = p->N, M = p->M ;
+  /* build indexes */
+  u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
+  x = myalloc (N, uchar*) ; 
+  for (k = 0 ; k < N ; ++k)
+  { 
+    cc[k] = up->c ;
+    pbwtCursorCalculateU (up) ;
+    memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
+    pbwtCursorForwardsReadAD (up, k) ;
+  }
+  pbwtCursorDestroy (up) ;
+  fprintf (stderr, "Made indices: \n") ; timeUpdate () ; 
+  /**************************************/
+
+  /***************** my algorithm part ************/
+  
+  int **f1, **g1 ;     /* one block match, start in index f1 and end in index g1 */
+  int **f2, **g2 ;     /* two continuously blocks match, start in index f2, and end in index g2*/
+  int s, seg_num = 1;   /* for the segment number and current segment */
+  int *pos;             /* record the heterozyogous position */
+  int num_1 = 0;        /* for the num of heterozyogous */
+  uchar *shape1;        /* for the shape seq1 */
+  uchar *shape2;        /* for the shape seq2 */
+  int **seg;            /* store the each segment info */
+  double w = 1.0 / M;   /* the small weight for the add weight */
+
+  pos = myalloc (N, int*) ;
+  f1 = myalloc (8, int*);
+  g1 = myalloc (8, int*);
+  f2 = myalloc (64, int*);
+  g2 = myalloc (64, int*);
+  shape1 = myalloc (N, uchar);
+  shape2 = myalloc (N, uchar);
+
+  int t;  //multi_time
+  int TIMES = individual_num;
+  int L;
+  for (t = 0; t < individual_num; ++t) {
+
+    seg_num = 1;
+    num_1 = 0;
+    /* copy the genotype */
+    for ( i = 0; i < N; ++i)
+      x[i] = geno[i][t];
+    
+    /* find the heterozyogous position and record */
+    for ( i = 0, j = 0; i < N; ++i) {
+      if (x[i] == 1) {
+        pos[num_1++] = i;
+      }
+      x[i] = x[i] / 2;  //change 0->0, 1->0, 2->1; 
+    }
+
+    memcpy (shape1, x, N*sizeof(uchar)) ;
+    memcpy (shape2, x, N*sizeof(uchar)) ;
+     
+    seg = myalloc (11, int *) ; for (i = 0; i < 11; ++i) seg[i] = myalloc (num_1/3 + 1, int);
+    /*
+    store the info. for each block.
+    seg[0]~seg[7]: store the 8 states for this block
+    seg[8]: the first heterozyogous position in this block
+    seg[9]: the last  heterozyogous position in this block
+    seg[8],seg[9] decide how many heterozyogous in this block
+    seg[10]: how many state in this block(max 8, min 5)
+    */
+
+    for ( i = 0; i < 8; ++i) { 
+      f1[i] = myalloc(num_1/3 + 1, int*);
+      g1[i] = myalloc(num_1/3 + 1, int*);
+    }
+    for ( i = 0; i < 64; ++i) { 
+      f2[i] = myalloc(num_1/3 + 1, int*);
+      g2[i] = myalloc(num_1/3 + 1, int*);
+    }
+    
+    //one segment count
+    int start = 0, end;
+    s = 0;
+    int count, new_count;
+    int tmp_f1[8];
+    int tmp_g1[8];
+    int tmp_seg[8];
+    int idx1, idx2;
+    for ( i = 0; i < num_1 - 2;) {
+      count = 0;   //record the vaild state number(match number > 0 states)
+      seg[8][s] = i;   //At begin, block has 3 heterozyogous genotype
+      seg[9][s] = i + 2;
+      end = pos[seg[9][s]] + 1;
+      for ( j = 0; j < 8; ++j) {
+        setSeq2(x, pos, seg[8][s], seg[9][s], j);  //set the sequence for 8 states
+        seg[count][s] = j; f1[count][s] = 0; g1[count][s] = M;
+        countHelp(x, start, end, cc, u, &f1[count][s], &g1[count][s]);  //find the match number for each state
+        if (g1[count][s] - f1[count][s] > 0)
+          count++;
+      }
+
+
+      while(count < 5) {
+        //heterozyogous genotype num exceeds the setting maximum, break.
+        if (seg[9][s] - seg[8][s] > (maxGeno - 2)) break;
+        new_count = 0;
+        //end of the sequence, break;
+        if (seg[9][s] < num_1 - 1) {
+          start = pos[seg[9][s]] + 1;
+          seg[9][s]++;
+          end = pos[seg[9][s]] + 1;
+        }
+        else 
+          break;  
+        
+        //extend one more heterozyogous genotype (each state increase to two states, idx1, idx2)
+        for (int ii = 0; ii < count; ++ii) {
+          idx1 = seg[ii][s] << 1;
+          idx2 = (seg[ii][s] << 1) + 1;
+          
+          setSeq2(x, pos, seg[8][s], seg[9][s], idx1);
+          if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+            tmp_seg[new_count++] = idx1;
+          }
+
+          setSeq2(x, pos, seg[8][s], seg[9][s], idx2);
+          if (countHelp2(x, start, end, cc, u, f1[ii][s], g1[ii][s], &tmp_f1[new_count], &tmp_g1[new_count])) {
+            tmp_seg[new_count++] = idx2;
+          }
+        }
+
+        //record the new states and match nums
+        for (int ii = 0; ii < new_count; ++ii) {
+          f1[ii][s] = tmp_f1[ii];
+          g1[ii][s] = tmp_g1[ii];
+          seg[ii][s] = tmp_seg[ii];
+        }
+
+      count = new_count;
+      }
+      start = pos[seg[9][s]] + 1;
+      i = seg[9][s] + 1;
+      seg[10][s] = count;
+      s++;
+    }
+
+    seg_num = s;
+
+    //initial f2, g2
+    for (i = 0; i < 64; ++i)
+      for (j = 0; j < seg_num; ++j) {
+        f2[i][j] = f1[i/8][j]; // initial the match number, based on the first block result
+        g2[i][j] = g1[i/8][j];
+      }
+
+    start = pos[seg[8][1]] + 1;  
+    for ( s = 1; s < seg_num; ++s) {
+      end = pos[seg[9][s]] + 1;
+      for ( i = 0; i < seg[10][s - 1]; ++i ) {
+        for ( j = 0; j < seg[10][s]; ++j ) {
+          setSeq2(x, pos, seg[8][s], seg[9][s], seg[j][s]);
+          countHelp(x, start, end, cc, u, &f2[j + i * 8][s - 1], &g2[j + i * 8][s - 1]);
+        }
+      } 
+      start = end;
+    }
+    
+   
+  
+   //shapeit for this individual
+   viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
+   //randomSampling(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w);
+   memcpy (hap[2 * t], shape1, N*sizeof(uchar));
+   memcpy (hap[2 * t + 1], shape2, N*sizeof(uchar));
+  
+   /* cleanup */
+   for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+   for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
+   for ( j = 0 ; j < 11; ++j) free(seg[j]) ; 
+  }
+  
+
+  for (int j = 0; j < p->N; ++j) {
+    for (int i = 0; i < 2 * individual_num; ++i)
+      fprintf(out, "%u ", hap[i][j]);
+    fprintf(out, "\n");
+  }
+  fclose (out);
+
+  /* cleanup */
+  free (cc) ;
+  //for (j = 0 ; j < p->M ; ++j) free(reference[j]) ; free (reference) ;
+  free(x), free (shape1) ; free (shape2) ;
+  free(pos);
+  free (seg); free(f1); free(g1); free(f2); free(g2);
+  for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
+  for (j = 0 ; j < individual_num; ++j) free(geno[j]) ; free (geno) ;
+  for (j = 0 ; j < 2 * individual_num; ++j) free(hap[j]) ; free (hap) ;
+}
+
+
+
+void shapeItMulti(PBWT *p, int maxGeno, int times, FILE *out) 
+{
     int *pos = myalloc (p->N, int) ;
     int N = p->N;
     int M = p->M;

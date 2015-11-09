@@ -453,6 +453,15 @@ int main (int argc, char *argv[])
       { 
         FILE *out = fopen(argv[3], "w");
         shapeItMulti (p, atoi(argv[1]), atoi(argv[2]), out) ; argc -= 4 ; argv += 4 ; }
+    else if (!strcmp (argv[0], "-createGeno") && argc > 1)
+      { 
+        FILE *out = fopen(argv[1], "w");
+        pbwtCreateGeno (p, out) ; argc -= 2 ; argv += 2 ; }
+    else if (!strcmp (argv[0], "-shapeItGeno") && argc > 3)
+      { 
+        FILE *in  = fopen(argv[1], "r");
+        FILE *out = fopen(argv[3], "w");
+        pbwtShapeItGeno (p, in, atoi(argv[2]), out) ; argc -= 4 ; argv += 4 ; }
     else
       die ("unrecognised command %s\nType pbwt without arguments for help", *argv) ;
     timeUpdate() ;
