@@ -825,16 +825,18 @@ fprintf(stderr, "2~~~~~~~~\n");
 fprintf(stderr, "3~~~~~~~~  t =  %d\n", t);
 memcpy (origin[0], old[2*t], N*sizeof(uchar));
 memcpy (origin[1], old[2*t + 1], N*sizeof(uchar));
+fprintf(stderr, "3.1~~~~~~~~  t =  %d\n", t);
     seg_num = 1;
     num_1 = 0;
     /* copy the genotype */
     for ( i = 0; i < N; ++i) {
-      x[i] = geno[i][t];
+      x[i] = geno[i][t] - '0';
       if (x[i] != (origin[0][i] + origin[1][i]))
         fprintf(stderr, "not equal t =  %d,  i =  %d,  x[i] = %u, origin[0][i] + origin[1][i] = %u \n", t, i, x[i], origin[0][i] + origin[1][i]);
 
     }
     
+fprintf(stderr, "3.2~~~~~~~~  t =  %d\n", t);
     /* find the heterozyogous position and record */
     for ( i = 0, j = 0; i < N; ++i) {
       if (x[i] == 1) {
@@ -970,8 +972,7 @@ fprintf(stderr, "8~~~~~~~~\n");
    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
    for ( j = 0 ; j < 11; ++j) free(seg[j]) ; 
 fprintf(stderr, "9~~~~~~~~\n");
-for (i = 0 ; i < M ; ++i) free(old[i]) ; free (old) ;
-for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
+
 
   }
   
@@ -992,6 +993,8 @@ for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
   for (j = 0 ; j < individual_num; ++j) free(geno[j]) ; free (geno) ;
   for (j = 0 ; j < 2 * individual_num; ++j) free(hap[j]) ; free (hap) ;
+for (i = 0 ; i < M ; ++i) free(old[i]) ; free (old) ;
+for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
 }
 
 
