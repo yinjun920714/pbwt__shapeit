@@ -224,8 +224,8 @@ static uchar** readGeno(PBWT *p, FILE *in, int* individual_num) {
         } else {
           fprintf(stderr, "%s\n", "different indivuals");
           flag = 0;
+          break;
         }
-        break;
       } else if (isspace(c)) {
         continue;
       } else if (c < '0' || c > '2') {
@@ -237,7 +237,8 @@ static uchar** readGeno(PBWT *p, FILE *in, int* individual_num) {
       }
     }
 
-    if ((!feof(in)) || (i != p->N)) {
+    //if ((!feof(in)) || (!flag)) {
+    if (!flag) {
       fprintf(stderr, "%s\n", "wrong geno input");
       for (int i = 0; i < p->N; ++i) free(geno[i]); free(geno);
       *individual_num = 0;
@@ -773,6 +774,7 @@ void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out)
   for (i = 0; i < 2 * individual_num; ++i)
     hap[i] = myalloc(p->N, uchar);
 
+fprintf(stderr, "1~~~~~~~~\n");
   /***************** pbwt part *******************/
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
@@ -795,6 +797,7 @@ void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out)
 
   /***************** my algorithm part ************/
   
+fprintf(stderr, "2~~~~~~~~\n");
   int **f1, **g1 ;     /* one block match, start in index f1 and end in index g1 */
   int **f2, **g2 ;     /* two continuously blocks match, start in index f2, and end in index g2*/
   int s, seg_num = 1;   /* for the segment number and current segment */
@@ -812,12 +815,15 @@ void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out)
   g2 = myalloc (64, int*);
   shape1 = myalloc (N, uchar);
   shape2 = myalloc (N, uchar);
-
+  
+//  for (i = 0; i < N; ++i)
+//	for (j = 0; j < M/2; ++j)
+//		geno[i][j] = '0';
   int t;  //multi_time
   int TIMES = individual_num;
-  int L;
-  for (t = 0; t < individual_num; ++t) {
+  for (t = 0; t < TIMES; ++t) {
 
+fprintf(stderr, "3~~~~~~~~  t =  %d\n", t);
     seg_num = 1;
     num_1 = 0;
     /* copy the genotype */
@@ -845,6 +851,7 @@ void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out)
     seg[10]: how many state in this block(max 8, min 5)
     */
 
+fprintf(stderr, "4~~~~~~~~\n");
     for ( i = 0; i < 8; ++i) { 
       f1[i] = myalloc(num_1/3 + 1, int*);
       g1[i] = myalloc(num_1/3 + 1, int*);
@@ -922,6 +929,7 @@ void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out)
 
     seg_num = s;
 
+fprintf(stderr, "5~~~~~~~~\n");
     //initial f2, g2
     for (i = 0; i < 64; ++i)
       for (j = 0; j < seg_num; ++j) {
@@ -943,16 +951,20 @@ void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out)
     
    
   
+fprintf(stderr, "6~~~~~~~~\n");
    //shapeit for this individual
    viterbiSampling2(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
    //randomSampling(seg, g1, f1, g2, f2, pos, seg_num, shape1, shape2, w);
+fprintf(stderr, "7~~~~~~~~\n");
    memcpy (hap[2 * t], shape1, N*sizeof(uchar));
    memcpy (hap[2 * t + 1], shape2, N*sizeof(uchar));
   
+fprintf(stderr, "8~~~~~~~~\n");
    /* cleanup */
    for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
    for ( j = 0 ; j < 11; ++j) free(seg[j]) ; 
+fprintf(stderr, "9~~~~~~~~\n");
   }
   
 
