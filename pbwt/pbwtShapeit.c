@@ -796,7 +796,9 @@ fprintf(stderr, "1~~~~~~~~\n");
   /**************************************/
 
   /***************** my algorithm part ************/
-  
+uchar **old = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
+uchar **origin;
+origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
 fprintf(stderr, "2~~~~~~~~\n");
   int **f1, **g1 ;     /* one block match, start in index f1 and end in index g1 */
   int **f2, **g2 ;     /* two continuously blocks match, start in index f2, and end in index g2*/
@@ -816,19 +818,22 @@ fprintf(stderr, "2~~~~~~~~\n");
   shape1 = myalloc (N, uchar);
   shape2 = myalloc (N, uchar);
   
-//  for (i = 0; i < N; ++i)
-//	for (j = 0; j < M/2; ++j)
-//		geno[i][j] = '0';
   int t;  //multi_time
   int TIMES = individual_num;
   for (t = 0; t < TIMES; ++t) {
 
 fprintf(stderr, "3~~~~~~~~  t =  %d\n", t);
+memcpy (origin[0], old[2*t], N*sizeof(uchar));
+memcpy (origin[1], old[2*t + 1], N*sizeof(uchar));
     seg_num = 1;
     num_1 = 0;
     /* copy the genotype */
-    for ( i = 0; i < N; ++i)
+    for ( i = 0; i < N; ++i) {
       x[i] = geno[i][t];
+      if (x[i] != (origin[0][i] + origin[1][i]))
+        fprintf(stderr, "not equal t =  %d,  i =  %d,  x[i] = %u, origin[0][i] + origin[1][i] = %u \n", t, i, x[i], origin[0][i] + origin[1][i]);
+
+    }
     
     /* find the heterozyogous position and record */
     for ( i = 0, j = 0; i < N; ++i) {
@@ -965,6 +970,9 @@ fprintf(stderr, "8~~~~~~~~\n");
    for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
    for ( j = 0 ; j < 11; ++j) free(seg[j]) ; 
 fprintf(stderr, "9~~~~~~~~\n");
+for (i = 0 ; i < M ; ++i) free(old[i]) ; free (old) ;
+for (j = 0 ; j < 2 ; ++j) free(origin[j]) ; free (origin) ;
+
   }
   
 
