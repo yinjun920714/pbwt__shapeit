@@ -22,7 +22,7 @@ force:
 test:
 	./test/test.pl
 
-PBWT_OBJS = pbwtMain.o pbwtCore.o pbwtSample.o pbwtIO.o pbwtMatch.o pbwtShapeit.o pbwtImpute.o pbwtPaint.o pbwtLikelihood.o pbwtMerge.o pbwtGeneticMap.o pbwtHtslib.o
+PBWT_OBJS = pbwtMain.o pbwtCore.o pbwtSample.o pbwtIO.o pbwtMatch.o pbwtShapeit.o pbwtShapeitWithMiss.o pbwtImpute.o pbwtPaint.o pbwtLikelihood.o pbwtMerge.o pbwtGeneticMap.o pbwtHtslib.o
 
 pbwt:  $(PBWT_OBJS) utils 
 	gcc $(CFLAGS) -o pbwt $(PBWT_OBJS) hash.o dict.o array.o utils.o $(HTSLIB) -lpthread -lz -lm
@@ -47,6 +47,9 @@ pbwtMatch.o: pbwtMatch.c pbwt.h utils.h
 
 pbwtShapeit.o: pbwtShapeit.c pbwt.h utils.h
 	gcc -std=c99 $(CFLAGS) -c pbwtShapeit.c
+
+pbwtShapeitWithMiss.o: pbwtShapeitWithMiss.c pbwt.h utils.h
+	gcc -std=c99 $(CFLAGS) -c pbwtShapeitWithMiss.c
 
 pbwtImpute.o: pbwtImpute.c pbwt.h utils.h
 	gcc $(CFLAGS) -c pbwtImpute.c
