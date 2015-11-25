@@ -11,11 +11,14 @@ typedef struct Tablesstruct {
 } Tables ;
 
 Tables* tablesCreate(int cap) {
-  Tables* tables;
+  Tables* tables = 0;
   tables = myalloc(1, Tables);
-  tables->array = myalloc(cap, TableNode*);
+fprintf (stderr, "fun: c  1~~~~~~\n");
+  tables->array = myalloc(cap, TableNode);
+fprintf (stderr, "fun: c  2~~~~~~\n");
   tables->cap = cap;
   tables->num = 0;
+//fprintf (stderr, "fun: c  4~~~~~~~~~~~~~~~~~ \n");
   return tables;
 }
 
@@ -46,44 +49,52 @@ void tablesDisplay(Tables *tables) {
   }
 }
 
-void resizeTables(Tables *tables) {
+Tables* resizeTables(Tables *tables) {
+//fprintf (stderr, "in Resize Table %d \n", tables);
   Tables *newTables = myalloc(1, Tables);
   newTables->array = myalloc(2 * tables->cap, TableNode);
   memcpy(newTables->array, tables->array, tables->cap * sizeof(TableNode));
   newTables->cap = 2 * tables->cap;
   newTables->num = tables->cap;
-  free(tables->array);
-  free(tables);
-  tables = newTables;
+  tablesDestroy(tables);
+//fprintf (stderr, "return resize Table %d \n", newTables);
+  return newTables;
 }
 
 void updateTable(int *het, int depth, uchar *seq, Tables *tables, int count) {
+
   int index = 0; 
   int start = het[5] - depth + 1;
-//fprintf (stderr, "fun: update 1~~~~~~~~~~  \n");
+//fprintf (stderr, "fun: update 1  %d ~~~~~~~~~~  \n", count);
+//fprintf (stderr, "fun: update 1.5  %s ~~~~~~~~~~  \n", seq);
   for (int i = 0; i < 6; ++i) {
-    index << 1;
-    index += seq[het[i]]; 
+    index <<= 1;
+    index += (seq[het[i] - start] - '0'); 
   }
   
-//fprintf (stderr, "fun: update 2~~~~~~~~~~  \n");
+//fprintf (stderr, "fun: update 2  index %d  ~~~~~~~~~~  \n", index);
 //fprintf (stderr, "fun: update depth  %d~~~~~~~~~~  \n", depth);
-  uchar *target = myalloc(depth - 6, uchar*);
+  uchar *target = myalloc(depth - 5, uchar*);
 //fprintf (stderr, "fun: update depth  %d~~~~~~~~~~  \n", depth);
   for (int i = 0, j = 0; j < depth; ++j) {
-    
-//fprintf (stderr, "fun: update i =  %d,  j = %d,  \n", i, j);
     if ((j + start) == het[i]){
-      i++;
-      j++;  
+      i++;  
     } else {
       target[j - i] = seq[j]; 
     }
   }
+  target[depth - 6] = '\0';
 
 //fprintf (stderr, "fun: update 3~~~~~~~~~~  \n");
+//fprintf (stderr, "fun: num : %d ~~~~~~~~~~  \n", tables->num);
+//fprintf (stderr, "fun: %d ~~~~~~~~~~  \n", tables->array[11]);
+//fprintf (stderr, "fun: success ~~~~~~~~~~  \n");
+
   int i;
   for (i = 0; i < tables->num; ++i) {
+//fprintf (stderr, "i  :  %d     tables->num  ;  %d\n ", i, tables->num);
+//fprintf (stderr, "%s \n", target);
+//fprintf (stderr, "%s \n", tables->array[i].id);
     if (!strcmp(target, tables->array[i].id)) {
       break;
     }
@@ -96,22 +107,25 @@ void updateTable(int *het, int depth, uchar *seq, Tables *tables, int count) {
   } else {
     if (tables->num == tables->cap) {
 fprintf (stderr, "resize!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~~~~~~~~~~ \n");
-       resizeTables(tables);
+//fprintf (stderr, "begin resizeTable %d \n", tables);
+       tables = resizeTables(tables);
+//fprintf (stderr, "after resizeTable %d \n", tables);
     }
 
-//fprintf (stderr, "fun: update 5~~~~~~~~~~  \n");
     tables->array[tables->num].data = myalloc(64, int);
     memset(tables->array[tables->num].data, 0, 64 * sizeof(int));
     tables->array[tables->num].data[index] = count;
     tables->array[tables->num].id = target;
     tables->num++;
+//fprintf (stderr, "after resizeTable %d, %d \n", tables, tables->num);
   }
-
 //fprintf (stderr, "fun: update 6~~~~~~~~~~  \n");
 }
 
 void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int **u, int f, int g, Tables *tables) {
+//fprintf (stderr, "fun:extend 0~~~~~~~~~~  \n");
 //fprintf (stderr, "fun:extend start extend cur  %d   \t  table size  %d  \n", cur,  tables->num);
+//fprintf (stderr, "seq in extend : %s \n", seq);
   if (f >= g) {
 //fprintf (stderr, "fun:extend finish extend cur  %d   \t  table size  %d  \n", cur,  tables->num);
     return;
@@ -120,16 +134,18 @@ void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int
 //fprintf (stderr, "fun:extend 1~~~~~~~~~~  \n");
   if (num == depth) {
 //fprintf (stderr, "fun:extend 2~~~~~~~~~~  \n");
+//fprintf (stderr, "begin updateTable %d, tables->num : %d \n", tables, tables->num);
     updateTable(het, depth, seq, tables, g - f);
+//fprintf (stderr, "after updateTable %d, tables->num : %d  \n", tables, tables->num);
 //fprintf (stderr, "fun:extend 3~~~~~~~~~~  \n");
 //fprintf (stderr, "fun:extend update cur  %d   \t  table size  %d  \n", cur,  tables->num);
   } else {
 //fprintf (stderr, "fun:extend 3~~~~~~~~~~  \n");
-    seq[num] = 1;
+    seq[num] = '1';
 //fprintf (stderr, "fun:extend 4~~~~~~~~~~  \n");
     extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, cc[cur] + f - u[cur][f], cc[cur] + g - u[cur][g], tables); //1
 //fprintf (stderr, "fun:extend 5~~~~~~~~~~  \n");
-    seq[num] = 0;
+    seq[num] = '0';
 //fprintf (stderr, "fun:extend 6~~~~~~~~~~  \n");
     extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, u[cur][f], u[cur][g], tables); //0
 //fprintf (stderr, "fun:extend finish extend cur  %d   \t  table size  %d  \n", cur,  tables->num);
@@ -187,24 +203,32 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
 
 //fprintf (stderr, "fun: main  2~~~~~~~~~~~~~~~~~ \n");
   int start, depth;
-  start = 0;
   int *het = myalloc(6, int);
-  int *seq;
-  Tables *tables = 0;
+
+
+fprintf (stderr, "seg_num  %d \n", seg_num);
   //for (s = 0; s < seg_num - 2; ++s) {
-  for (s = 0; s < 1; ++s) {
+  for (s = 20; s < 50; ++s) {
+      Tables *tables = 0;
+      int *seq;
+      if (!s)
+	start = 0;
+      else
+	start = pos[s * 3 - 1] + 1;
+      
       for (i = 0; i < 6; ++i) {
         het[i] = pos[s * 3 + i];
-//fprintf (stderr, "  %d \t", het[i]);
       }
-//fprintf (stderr, "fun: main  ~~~~~~~~~~~~~~~~~ \n");
 
       depth = het[5] - start + 1;
-      seq = myalloc(depth, uchar);
-      tables = tablesCreate(20);
+      seq = myalloc(depth + 1, uchar);
+      memset(seq, '2', depth * sizeof(uchar));
+      seq[depth] = '\0';
+      tables = tablesCreate(2000);
+//fprintf (stderr, "fun: main  5~~~~~~~~~~~~~~~~~ \n");
       extendMatch(het, start, 0, depth, seq, cc, u, 0, M, tables);
-      tablesDisplay(tables);      
-      start = het[2] + 1;
+fprintf (stderr, "display  s = %d,  depth = %d \t table size = %d\n", s, depth, tables->num);
+//tablesDisplay(tables);      
 //fprintf (stderr, "fun: main  6~~~~~~~~~~~~~~~~~ \n");
       free(seq);
 //fprintf (stderr, "fun: main  7~~~~~~~~~~~~~~~~~ \n");
