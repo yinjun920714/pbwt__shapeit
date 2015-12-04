@@ -144,9 +144,9 @@ void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int
   if (num == depth) {
 //fprintf (stderr, "fun:extend 2~~~~~~~~~~  \n");
 //fprintf (stderr, "begin updateTable %d, tables->num : %d \n", tables, tables->num);
-fprintf (stderr, "1~~begin resizeTable %d \t  %d \n", tables, tables->cap);
+fprintf (stderr, "1~~begin resizeTable %d \t  %d \n", tables, (*tables)->cap);
     updateTable(het, depth, seq, tables, g - f);
-fprintf (stderr, "1~~after resizeTable %d \t  %d \n", tables, tables->cap);
+fprintf (stderr, "1~~after resizeTable %d \t  %d \n", tables, (*tables)->cap);
 //fprintf (stderr, "after updateTable %d, tables->num : %d  \n", tables, tables->num);
 //fprintf (stderr, "fun:extend 3~~~~~~~~~~  \n");
 //fprintf (stderr, "fun:extend update cur  %d   \t  table size  %d  \n", cur,  tables->num);
@@ -154,11 +154,11 @@ fprintf (stderr, "1~~after resizeTable %d \t  %d \n", tables, tables->cap);
 //fprintf (stderr, "fun:extend 3~~~~~~~~~~  \n");
     seq[num] = '1';
 //fprintf (stderr, "fun:extend 4~~~~~~~~~~  \n");
-    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, cc[cur] + f - u[cur][f], cc[cur] + g - u[cur][g], (*tables)); //1
+    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, cc[cur] + f - u[cur][f], cc[cur] + g - u[cur][g], tables); //1
 //fprintf (stderr, "fun:extend 5~~~~~~~~~~  \n");
     seq[num] = '0';
 //fprintf (stderr, "fun:extend 6~~~~~~~~~~  \n");
-    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, u[cur][f], u[cur][g], (*tables)); //0
+    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, u[cur][f], u[cur][g], tables); //0
 //fprintf (stderr, "fun:extend finish extend cur  %d   \t  table size  %d  \n", cur,  tables->num);
   }
 }
