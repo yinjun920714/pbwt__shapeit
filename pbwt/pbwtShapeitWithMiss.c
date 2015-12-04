@@ -208,7 +208,7 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
 
 fprintf (stderr, "seg_num  %d \n", seg_num);
   //for (s = 0; s < seg_num - 2; ++s) {
-  for (s = 20; s < 50; ++s) {
+  for (s = 0; s < 100; ++s) {
       Tables *tables = 0;
       int *seq;
       if (!s)
@@ -224,7 +224,7 @@ fprintf (stderr, "seg_num  %d \n", seg_num);
       seq = myalloc(depth + 1, uchar);
       memset(seq, '2', depth * sizeof(uchar));
       seq[depth] = '\0';
-      tables = tablesCreate(2000);
+      tables = tablesCreate(1000);
 //fprintf (stderr, "fun: main  5~~~~~~~~~~~~~~~~~ \n");
       extendMatch(het, start, 0, depth, seq, cc, u, 0, M, tables);
 fprintf (stderr, "display  s = %d,  depth = %d \t table size = %d\n", s, depth, tables->num);
