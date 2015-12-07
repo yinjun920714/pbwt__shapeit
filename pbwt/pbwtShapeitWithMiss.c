@@ -1,14 +1,38 @@
 #include "pbwt.h"
-typedef struct Tablestruct {
+typedef struct TableNodeStruct {
   uchar* id;
   int* data;
 } TableNode ;
 
-typedef struct Tablesstruct {
+typedef struct TablesStruct {
   TableNode* array;
   int cap;
   int num;
 } Tables ;
+
+typedef struct TreeNodeStruct {
+  int left;      // '0'
+  int right;     // '1'
+} TreeNode ;
+
+typedef struct TreeStruct {
+  TreeNode* root;
+  int cap;
+  int num;
+} Tree ;
+
+typedef struct LeafNodeStruct {
+  uchar* id;
+  int count;
+} LeafNode ;
+
+typedef struct LeafStruct {
+  LeafNode* head;
+  int cap;
+  int num;
+} Leaf ;
+
+
 
 Tables* tablesCreate(int cap) {
   Tables* tables = 0;
