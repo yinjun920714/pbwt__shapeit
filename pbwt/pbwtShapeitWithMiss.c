@@ -123,17 +123,15 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
   
   /********   ref  *****/
   uchar **reference = pbwtHaplotypes (p) ; /* haplotypes for reference  (M * N)  */
-  int *geno = myalloc(p->N, int);
-  for (int i = 0; i < p->N; ++i)
-    geno[i] = reference[0][i] + reference[1][i];
+
   /*********************/
 
   uchar *x;                 /* use for current query */
   PbwtCursor *up = pbwtCursorCreate (p, TRUE, TRUE) ;
   int **u ;   /* stored indexes */
   int i, j, k, N = p->N, M = p->M ;
-  int num_1 = 0;      /* for the num of heterozyogous */
-  int s, seg_num = 1; /* for the segment number and current segment */
+  int num_1;      /* for the num of heterozyogous */
+  int s, seg_num; /* for the segment number and current segment */
   
   /* build indexes */
   u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
@@ -148,13 +146,34 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
       memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
       pbwtCursorForwardsReadAD (up, k) ;
     }
+  int time = 150;
+  int **geno;
+  geno = myalloc(time, int*);
+  for (i = 0; i < time; ++i) geno[i] = myalloc (p->N, int);
+  
+  for (j = 0; j < time; ++j) {
+     for (i = 0; i < p->N; ++i) {
+        geno[j][i] = reference[j * 2][i] + reference[j * 2 + 1][i];
+     }
+  }
+
+  //clean up
   pbwtCursorDestroy (up) ;
+  for (j = 0 ; j < M ; ++j) free(reference[j]) ; free (reference) ;
+
+  fprintf (stderr, "Made indices: \n") ; timeUpdate ();
 
   int *pos;           /* record the heterozyogous position */
   pos = myalloc (N, int) ;
+for (int t = 0; t < time; ++t) {
+  
+  num_1 = 0;      /* for the num of heterozyogous */
+  s = 0;
+  seg_num = 1; /* for the segment number and current segment */
+  
   /* find the heterozyogous position and record */
   for ( i = 0, j = 0; i < N; ++i) {
-    if (geno[i] == 1) {
+    if (geno[t][i] == 1) {
       ++j;
       pos[num_1++] = i;
       if (j == 3) {
@@ -187,16 +206,16 @@ fprintf (stderr, "seg_num  %d \n", seg_num);
       seq[depth] = '\0';
       tables = tablesCreate(500);
       extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tables);
-fprintf (stderr, "display  s = %d,  depth = %d \t table size = %d\n", s, depth, tables->num);
+//fprintf (stderr, "display  s = %d,  depth = %d \t table size = %d\n", s, depth, tables->num);
 //tablesDisplay(tables);      
       free(seq);
       tablesDestroy(tables);
   }
   free(het);
-
+}
+  fprintf (stderr, "finished \n") ; timeUpdate ();
   /* cleanup */
   free(x); free(pos); free(cc);
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
-  for (j = 0 ; j < M ; ++j) free(reference[j]) ; free (reference) ;
-  free(geno);
+  for (j = 0 ; j < time; ++j) free(geno[j]) ; free (geno);
 }
