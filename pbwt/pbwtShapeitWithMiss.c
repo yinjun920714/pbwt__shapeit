@@ -17,7 +17,7 @@ typedef struct TreeNodeStruct {
 } TreeNode ;
 
 typedef struct TreeStruct {
-  TreeNode* root;
+  TreeNode* array;
   int cap;
   int num;
 } Tree ;
@@ -28,7 +28,7 @@ typedef struct LeafNodeStruct {
 } LeafNode ;
 
 typedef struct LeafStruct {
-  LeafNode* head;
+  LeafNode* array;
   int cap;
   int num;
 } Leaf ;
@@ -46,17 +46,17 @@ Tables* tablesCreate(int cap) {
 
 Tree* treeCreate(int cap) {
   Tree* tree = 0;
-  tree = myalloc(1, TreeNode);
-  tree->root = myalloc(cap, TreeNode);
-  root->cap = cap;
-  root->num = 1;
-  return root;
+  tree = myalloc(1, Tree);
+  tree->array = myalloc(cap, TreeNode);
+  tree->cap = cap;
+  tree->num = 1;
+  return tree;
 }
 
 Leaf* leafCreate(int cap) {
   Leaf* leaf = 0;
   leaf = myalloc(1, Leaf);
-  leaf->head = myalloc(cap, LeafNode);
+  leaf->array = myalloc(cap, LeafNode);
   leaf->cap = cap;
   leaf->num = 0;
   return leaf;
@@ -74,17 +74,17 @@ void tablesDestroy(Tables *tables) {
 }
 
 void treeDestroy(Tree *tree) {
-  free(tree->root);
+  free(tree->array);
   free(tree);
 }
 
 void leafDestroy(Leaf *leaf) {
 
   for (int i = 0; i < leaf->num; ++i) {
-    free(leaf->head[i].id);
+    free(leaf->array[i].id);
   }
 
-  free(leaf->head);
+  free(leaf->array);
   free(leaf);
 }
 
@@ -108,15 +108,40 @@ void tablesDisplay(Tables *tables) {
 Tables* resizeTables(Tables *tables) {
   Tables *newTables = myalloc(1, Tables);
   newTables->array = myalloc(2 * tables->cap, TableNode);
+  /*
   for (int i = 0; i < tables->cap; ++i) {
   	newTables->array[i].id = tables->array[i].id;
   	newTables->array[i].data = tables->array[i].data;
   }
+  */
+  memcpy(newTables->array, tables->array, tables->cap * sizeof(TableNode));
   newTables->cap = 2 * tables->cap;
   newTables->num = tables->cap;
   free(tables->array);
   free(tables);
   return newTables;
+}
+
+Tree* resizeTree(Tree *tree) {
+  Tree *newTree = myalloc(1, Tree);
+  newTree->array = myalloc(2 * tree->cap, TreeNode);
+  memcpy(newTree->array, tree->array, tree->cap * sizeof(TreeNode));
+  newTree->cap = 2 * tree->cap;
+  newTree->num = tree->cap;
+  free(tree->array);
+  free(tree);
+  return newTree;
+}
+
+Leaf* resizeLeaf(Leaf *leaf) {
+  Leaf *newLeaf = myalloc(1, Leaf);
+  newLeaf->array = myalloc(2 * leaf->cap, LeafNode);
+  memcpy(newLeaf->array, leaf->array, leaf->cap * sizeof(LeafNode));
+  newLeaf->cap = 2 * leaf->cap;
+  newLeaf->num = leaf->cap;
+  free(leaf->array);
+  free(leaf);
+  return newLeaf;
 }
 
 void updateTable(int *het, int depth, uchar *seq, Tables **tables, int count) {
@@ -180,13 +205,40 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
     target[depth - 6] = '\0';
 
     int i;
+    TreeNode *cur;
+    cur = (*tree)->array;
     for (i = 0; i < depth -6; ++i) {
       if (target[i] == '0') {
         //find the left node
+        if (cur->left == 0) {
+          if ((*tree)->num == (*tree)->cap) {
+            (*tree) = resizeTree((*tree));
+          }
+          cur->left = (*tree)->num;
+          (*tree)->num++;
+        }
+        cur = &((*tree)->array[cur->left]);
       } else {
         //find the right node
-      }
+        if (cur->right == 0) {
+          if ((*tree)->num == (*tree)->cap) {
+            (*tree) = resizeTree((*tree));
+          }
+          cur->right = (*tree)->num;
+          (*tree)->num++;
+        }
+        cur = &((*tree)->array[cur->right]);
+      }  
     }
+
+    if ((*leaf)->num == (*leaf)->cap) {
+      (*leaf) = resizeLeaf((*leaf));
+    }
+    cur->left = (*leaf)->num;
+    cur->right = cur->left;
+    (*leaf)->num++;
+    (*leaf)->array[cur->left].id = target;
+    (*leaf)->array[cur->left].count = count;
 }
 
 void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int **u, int f, int g, Tables **tables) {
