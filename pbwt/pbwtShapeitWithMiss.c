@@ -48,6 +48,7 @@ Tree* treeCreate(int cap) {
   Tree* tree = 0;
   tree = myalloc(1, Tree);
   tree->array = myalloc(cap, TreeNode);
+  memset(tree->array, 0, cap * sizeof(TreeNode));
   tree->cap = cap;
   tree->num = 1;
   return tree;
@@ -105,6 +106,23 @@ void tablesDisplay(Tables *tables) {
   }
 }
 
+void leafDisplay(Leaf *leaf) {
+  if (!leaf || leaf->num == 0) {
+    fprintf(stderr, "empty leaf\n");
+    return;
+  }
+  fprintf(stderr, "leaf cap : %d   \t  leaf num : %d  \n", leaf->cap, leaf->num);
+  for (int i = 0; i < tabl->num; ++i) {
+    fprintf(stderr, "\n leaf %d,   leaf id :  %s \n", i, tables->array[i].id);
+    for (int j = 0; j < 8; ++j) {
+      for (int k = 0; k < 8; ++k) {
+        fprintf(stderr, "%d\t", tables->array[i].data[j * 8 + k]);
+      }
+      fprintf(stderr, "\n");
+    }
+  }
+}
+
 Tables* resizeTables(Tables *tables) {
   Tables *newTables = myalloc(1, Tables);
   newTables->array = myalloc(2 * tables->cap, TableNode);
@@ -125,6 +143,7 @@ Tables* resizeTables(Tables *tables) {
 Tree* resizeTree(Tree *tree) {
   Tree *newTree = myalloc(1, Tree);
   newTree->array = myalloc(2 * tree->cap, TreeNode);
+  memset(newTree->array, 0, 2 * tree->cap * sizeof(TreeNode));
   memcpy(newTree->array, tree->array, tree->cap * sizeof(TreeNode));
   newTree->cap = 2 * tree->cap;
   newTree->num = tree->cap;
@@ -287,7 +306,7 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
       memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
       pbwtCursorForwardsReadAD (up, k) ;
     }
-  int time = 1;
+  int time = 40;
   int **geno;
   geno = myalloc(time, int*);
   for (i = 0; i < time; ++i) geno[i] = myalloc (p->N, int);
@@ -348,7 +367,7 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
         tree = treeCreate(500);
         leaf = leafCreate(500);
         extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tree, &leaf);
-fprintf (stderr, "display  s = %d,  depth = %d \t leaf size = %d\n", s, depth, leaf->num);
+     //fprintf (stderr, "display  s = %d,  depth = %d \t leaf size = %d\n", s, depth, leaf->num);
      //tablesDisplay(tables);      
         free(seq);
         treeDestroy(tree);
