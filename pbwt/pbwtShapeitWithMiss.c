@@ -10,6 +10,7 @@ typedef struct TablesStruct {
   int num;
 } Tables ;
 
+//for the parent of leaf node, the left will present the index in LeafStruct;
 typedef struct TreeNodeStruct {
   int left;      // '0'
   int right;     // '1'
@@ -43,6 +44,24 @@ Tables* tablesCreate(int cap) {
   return tables;
 }
 
+Tree* treeCreate(int cap) {
+  Tree* tree = 0;
+  tree = myalloc(1, TreeNode);
+  tree->root = myalloc(cap, TreeNode);
+  root->cap = cap;
+  root->num = 1;
+  return root;
+}
+
+Leaf* leafCreate(int cap) {
+  Leaf* leaf = 0;
+  leaf = myalloc(1, Leaf);
+  leaf->head = myalloc(cap, LeafNode);
+  leaf->cap = cap;
+  leaf->num = 0;
+  return leaf;
+}
+
 void tablesDestroy(Tables *tables) {
 
   for (int i = 0; i < tables->num; ++i) {
@@ -52,6 +71,21 @@ void tablesDestroy(Tables *tables) {
 
   free(tables->array);
   free(tables);
+}
+
+void treeDestroy(Tree *tree) {
+  free(tree->root);
+  free(tree);
+}
+
+void leafDestroy(Leaf *leaf) {
+
+  for (int i = 0; i < leaf->num; ++i) {
+    free(leaf->head[i].id);
+  }
+
+  free(leaf->head);
+  free(leaf);
 }
 
 void tablesDisplay(Tables *tables) {
@@ -127,10 +161,38 @@ void updateTable(int *het, int depth, uchar *seq, Tables **tables, int count) {
   }
 }
 
+void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int count) {
+    int index = 0; 
+    int start = het[5] - depth + 1;
+    for (int i = 0; i < 6; ++i) {
+      index <<= 1;
+      index += (seq[het[i] - start] - '0'); 
+    }
+    
+    uchar *target = myalloc(depth - 5, uchar);
+    for (int i = 0, j = 0; j < depth; ++j) {
+      if ((j + start) == het[i]){
+        i++;  
+      } else {
+        target[j - i] = seq[j]; 
+      }
+    }
+    target[depth - 6] = '\0';
+
+    int i;
+    for (i = 0; i < depth -6; ++i) {
+      if (target[i] == '0') {
+        //find the left node
+      } else {
+        //find the right node
+      }
+    }
+}
+
 void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int **u, int f, int g, Tables **tables) {
   if (f >= g) {
     return;
-}
+  } 
   if (num == depth) {
     updateTable(het, depth, seq, tables, g - f);
   } else {
@@ -189,54 +251,53 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
 
   int *pos;           /* record the heterozyogous position */
   pos = myalloc (N, int) ;
-for (int t = 0; t < time; ++t) {
-  
-  num_1 = 0;      /* for the num of heterozyogous */
-  s = 0;
-  seg_num = 1; /* for the segment number and current segment */
-  
-  /* find the heterozyogous position and record */
-  for ( i = 0, j = 0; i < N; ++i) {
-    if (geno[t][i] == 1) {
-      ++j;
-      pos[num_1++] = i;
-      if (j == 3) {
-        ++seg_num;
-        j = 0;
+  for (int t = 0; t < time; ++t) {
+    num_1 = 0;      /* for the num of heterozyogous */
+    s = 0;
+    seg_num = 1; /* for the segment number and current segment */
+    
+    /* find the heterozyogous position and record */
+    for ( i = 0, j = 0; i < N; ++i) {
+      if (geno[t][i] == 1) {
+        ++j;
+        pos[num_1++] = i;
+        if (j == 3) {
+          ++seg_num;
+          j = 0;
+        }
       }
     }
-  }
 
-  int start, depth;
-  int *het = myalloc(6, int);
+    int start, depth;
+    int *het = myalloc(6, int);
 
 
-fprintf (stderr, "seg_num  %d \n", seg_num);
-  for (s = 0; s < seg_num - 2; ++s) {
-      Tables *tables = 0;
-      uchar *seq;
-      if (!s)
-	start = 0;
-      else
-	start = pos[s * 3 - 1] + 1;
-      
-      for (i = 0; i < 6; ++i) {
-        het[i] = pos[s * 3 + i];
-      }
+    fprintf (stderr, "seg_num  %d \n", seg_num);
+    for (s = 0; s < seg_num - 2; ++s) {
+        Tables *tables = 0;
+        uchar *seq;
+        if (!s)
+  	start = 0;
+        else
+  	start = pos[s * 3 - 1] + 1;
+        
+        for (i = 0; i < 6; ++i) {
+          het[i] = pos[s * 3 + i];
+        }
 
-      depth = het[5] - start + 1;
-      seq = myalloc(depth + 1, uchar);
-      memset(seq, '2', depth * sizeof(uchar));
-      seq[depth] = '\0';
-      tables = tablesCreate(500);
-      extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tables);
-//fprintf (stderr, "display  s = %d,  depth = %d \t table size = %d\n", s, depth, tables->num);
-//tablesDisplay(tables);      
-      free(seq);
-      tablesDestroy(tables);
-  }
-  free(het);
-}
+        depth = het[5] - start + 1;
+        seq = myalloc(depth + 1, uchar);
+        memset(seq, '2', depth * sizeof(uchar));
+        seq[depth] = '\0';
+        tables = tablesCreate(500);
+        extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tables);
+     //fprintf (stderr, "display  s = %d,  depth = %d \t table size = %d\n", s, depth, tables->num);
+     //tablesDisplay(tables);      
+        free(seq);
+        tablesDestroy(tables);
+    }
+    free(het);
+  } 
   fprintf (stderr, "finished \n") ; timeUpdate ();
   /* cleanup */
   free(x); free(pos); free(cc);
