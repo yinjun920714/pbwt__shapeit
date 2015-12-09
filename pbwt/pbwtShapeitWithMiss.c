@@ -144,6 +144,7 @@ Leaf* resizeLeaf(Leaf *leaf) {
   return newLeaf;
 }
 
+/*
 void updateTable(int *het, int depth, uchar *seq, Tables **tables, int count) {
 
   int index = 0; 
@@ -185,6 +186,7 @@ void updateTable(int *het, int depth, uchar *seq, Tables **tables, int count) {
     (*tables)->num++;
   }
 }
+*/
 
 void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int count) {
     int index = 0; 
@@ -241,17 +243,18 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
     (*leaf)->array[cur->left].count = count;
 }
 
-void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int **u, int f, int g, Tables **tables) {
+//store in tree and leaf
+void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int **u, int f, int g, Tree **tree, Leaf **leaf) {
   if (f >= g) {
     return;
   } 
   if (num == depth) {
-    updateTable(het, depth, seq, tables, g - f);
+    insertTree(het, depth, seq, tree, leaf, g - f);
   } else {
     seq[num] = '1';
-    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, cc[cur] + f - u[cur][f], cc[cur] + g - u[cur][g], tables); //1
+    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, cc[cur] + f - u[cur][f], cc[cur] + g - u[cur][g], tree, leaf); //1
     seq[num] = '0';
-    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, u[cur][f], u[cur][g], tables); //0
+    extendMatch(het, cur + 1, num + 1, depth, seq, cc, u, u[cur][f], u[cur][g], tree, leaf); //0
   }
 }
 
@@ -284,7 +287,7 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
       memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
       pbwtCursorForwardsReadAD (up, k) ;
     }
-  int time = 150;
+  int time = 1;
   int **geno;
   geno = myalloc(time, int*);
   for (i = 0; i < time; ++i) geno[i] = myalloc (p->N, int);
@@ -326,12 +329,13 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
 
     fprintf (stderr, "seg_num  %d \n", seg_num);
     for (s = 0; s < seg_num - 2; ++s) {
-        Tables *tables = 0;
+        Tree *tree = 0;
+        Leaf *leaf = 0;
         uchar *seq;
         if (!s)
-  	start = 0;
+  	       start = 0;
         else
-  	start = pos[s * 3 - 1] + 1;
+  	       start = pos[s * 3 - 1] + 1;
         
         for (i = 0; i < 6; ++i) {
           het[i] = pos[s * 3 + i];
@@ -341,12 +345,14 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
         seq = myalloc(depth + 1, uchar);
         memset(seq, '2', depth * sizeof(uchar));
         seq[depth] = '\0';
-        tables = tablesCreate(500);
-        extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tables);
-     //fprintf (stderr, "display  s = %d,  depth = %d \t table size = %d\n", s, depth, tables->num);
+        tree = treeCreate(500);
+        leaf = leafCreate(500);
+        extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tree, &leaf);
+fprintf (stderr, "display  s = %d,  depth = %d \t leaf size = %d\n", s, depth, leaf->num);
      //tablesDisplay(tables);      
         free(seq);
-        tablesDestroy(tables);
+        treeDestroy(tree);
+        leafDestroy(leaf);
     }
     free(het);
   } 
