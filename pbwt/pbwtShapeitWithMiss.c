@@ -24,6 +24,7 @@ typedef struct TreeStruct {
 
 typedef struct LeafNodeStruct {
   uchar* id;
+  int state;
   int count;
 } LeafNode ;
 
@@ -112,14 +113,8 @@ void leafDisplay(Leaf *leaf) {
     return;
   }
   fprintf(stderr, "leaf cap : %d   \t  leaf num : %d  \n", leaf->cap, leaf->num);
-  for (int i = 0; i < tabl->num; ++i) {
-    fprintf(stderr, "\n leaf %d,   leaf id :  %s \n", i, tables->array[i].id);
-    for (int j = 0; j < 8; ++j) {
-      for (int k = 0; k < 8; ++k) {
-        fprintf(stderr, "%d\t", tables->array[i].data[j * 8 + k]);
-      }
-      fprintf(stderr, "\n");
-    }
+  for (int i = 0; i < leaf->num; ++i) {
+    fprintf(stderr, "\n leaf %d, %s \t  count : %d \t state : %d\n", i, leaf->array[i].id, leaf->array[i].count, leaf->array[i].state);
   }
 }
 
@@ -215,7 +210,9 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
       index += (seq[het[i] - start] - '0'); 
     }
     
-    uchar *target = myalloc(depth - 5, uchar);
+    uchar *target = myalloc(depth + 1, uchar);
+   // uchar *target = myalloc(depth - 5, uchar);
+ /*
     for (int i = 0, j = 0; j < depth; ++j) {
       if ((j + start) == het[i]){
         i++;  
@@ -223,18 +220,24 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
         target[j - i] = seq[j]; 
       }
     }
-    target[depth - 6] = '\0';
+*/
+    memcpy(target, seq, depth * sizeof(uchar));
+    target[depth] = '\0';
 
     int i;
     TreeNode *cur;
     cur = (*tree)->array;
-    for (i = 0; i < depth -6; ++i) {
+    for (i = 0; i < depth; ++i) {
+      if ((*tree)->num == (*tree)->cap) {
+            (*tree) = resizeTree((*tree));
+      }
+
       if (target[i] == '0') {
         //find the left node
         if (cur->left == 0) {
-          if ((*tree)->num == (*tree)->cap) {
-            (*tree) = resizeTree((*tree));
-          }
+    //      if ((*tree)->num == (*tree)->cap) {
+    //        (*tree) = resizeTree((*tree));
+    //      }
           cur->left = (*tree)->num;
           (*tree)->num++;
         }
@@ -242,9 +245,9 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
       } else {
         //find the right node
         if (cur->right == 0) {
-          if ((*tree)->num == (*tree)->cap) {
-            (*tree) = resizeTree((*tree));
-          }
+    //        if ((*tree)->num == (*tree)->cap) {
+    //          (*tree) = resizeTree((*tree));
+    //      }
           cur->right = (*tree)->num;
           (*tree)->num++;
         }
@@ -260,10 +263,12 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
     (*leaf)->num++;
     (*leaf)->array[cur->left].id = target;
     (*leaf)->array[cur->left].count = count;
+    (*leaf)->array[cur->left].state = index;
 }
 
 //store in tree and leaf
 void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int **u, int f, int g, Tree **tree, Leaf **leaf) {
+
   if (f >= g) {
     return;
   } 
@@ -345,9 +350,10 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
     int start, depth;
     int *het = myalloc(6, int);
 
-
-    fprintf (stderr, "seg_num  %d \n", seg_num);
+  fprintf (stderr, "seg_num  %d \n", seg_num);
     for (s = 0; s < seg_num - 2; ++s) {
+//  fprintf (stderr, "s = %d \n", s) ;
+   // for (s = 1491; s < 1500; ++s) {
         Tree *tree = 0;
         Leaf *leaf = 0;
         uchar *seq;
@@ -364,11 +370,11 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
         seq = myalloc(depth + 1, uchar);
         memset(seq, '2', depth * sizeof(uchar));
         seq[depth] = '\0';
-        tree = treeCreate(500);
-        leaf = leafCreate(500);
+        tree = treeCreate(5000);
+        leaf = leafCreate(5000);
         extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tree, &leaf);
-     //fprintf (stderr, "display  s = %d,  depth = %d \t leaf size = %d\n", s, depth, leaf->num);
      //tablesDisplay(tables);      
+     //leafDisplay(leaf);      
         free(seq);
         treeDestroy(tree);
         leafDestroy(leaf);
