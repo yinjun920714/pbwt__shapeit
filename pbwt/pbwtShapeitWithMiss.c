@@ -141,7 +141,7 @@ Tree* resizeTree(Tree *tree) {
   memset(newTree->array, 0, 2 * tree->cap * sizeof(TreeNode));
   memcpy(newTree->array, tree->array, tree->cap * sizeof(TreeNode));
   newTree->cap = 2 * tree->cap;
-  newTree->num = tree->cap;
+  newTree->num = tree->num;
   free(tree->array);
   free(tree);
   return newTree;
@@ -152,7 +152,7 @@ Leaf* resizeLeaf(Leaf *leaf) {
   newLeaf->array = myalloc(2 * leaf->cap, LeafNode);
   memcpy(newLeaf->array, leaf->array, leaf->cap * sizeof(LeafNode));
   newLeaf->cap = 2 * leaf->cap;
-  newLeaf->num = leaf->cap;
+  newLeaf->num = leaf->num;
   free(leaf->array);
   free(leaf);
   return newLeaf;
@@ -225,8 +225,7 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
     target[depth - 6] = '\0';
 
     int i;
-    TreeNode *cur;
-    cur = (*tree)->array;
+    int cur = 0;
     for (i = 0; i < depth - 6; ++i) {
       if ((*tree)->num == (*tree)->cap) {
             (*tree) = resizeTree((*tree));
@@ -234,36 +233,32 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
 
       if (target[i] == '0') {
         //find the left node
-        if (cur->left == 0) {
-    //      if ((*tree)->num == (*tree)->cap) {
-    //        (*tree) = resizeTree((*tree));
-    //      }
-          cur->left = (*tree)->num;
+        if ((*tree)->array[cur].left == 0) {
+          (*tree)->array[cur].left = (*tree)->num;
           (*tree)->num++;
         }
-        cur = &((*tree)->array[cur->left]);
+if ((*tree)->array[cur].left >= (*tree)->cap) fprintf(stderr, "out of scope 1 \t %d \t %d\n", 1, (*tree)->cap);
+        cur = (*tree)->array[cur].left;
       } else {
         //find the right node
-        if (cur->right == 0) {
-    //        if ((*tree)->num == (*tree)->cap) {
-    //          (*tree) = resizeTree((*tree));
-    //      }
-          cur->right = (*tree)->num;
+        if ((*tree)->array[cur].right == 0) {
+          (*tree)->array[cur].right = (*tree)->num;
           (*tree)->num++;
         }
-        cur = &((*tree)->array[cur->right]);
+if ((*tree)->array[cur].right>= (*tree)->cap) fprintf(stderr, "out of scope 2 \t %d \t %d \n", 0, (*tree)->cap);
+        cur = (*tree)->array[cur].right;
       }  
     }
 
     if ((*leaf)->num == (*leaf)->cap) {
       (*leaf) = resizeLeaf((*leaf));
     }
-    cur->left = (*leaf)->num;
-    cur->right = cur->left;
+    (*tree)->array[cur].left = (*leaf)->num;
+    (*tree)->array[cur].right = (*leaf)->num;
     (*leaf)->num++;
-    (*leaf)->array[cur->left].id = target;
-    (*leaf)->array[cur->left].count = count;
-    (*leaf)->array[cur->left].state = index;
+    (*leaf)->array[(*tree)->array[cur].left].id = target;
+    (*leaf)->array[(*tree)->array[cur].left].count = count;
+    (*leaf)->array[(*tree)->array[cur].left].state = index;
 }
 
 //store in tree and leaf
@@ -419,10 +414,13 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
 	}	
 	homSeq[depth - 6] = '\0';
 	conditionTable = calculateConditionalTable(homSeq, &leaf, 0.1);
+        /*	
 	if (s == 1000) {
 		fprintf (stderr, "homSeq : %s \t leaf_size : %d \n", homSeq, leaf->num);
 		displayTable(conditionTable);
 	}
+	*/
+	
 	free(homSeq);
 	free(conditionTable);
      //tablesDisplay(tables);      
