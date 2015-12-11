@@ -210,9 +210,9 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
       index += (seq[het[i] - start] - '0'); 
     }
     
-    uchar *target = myalloc(depth + 1, uchar);
-   // uchar *target = myalloc(depth - 5, uchar);
- /*
+   // uchar *target = myalloc(depth + 1, uchar);
+    uchar *target = myalloc(depth - 5, uchar);
+ 
     for (int i = 0, j = 0; j < depth; ++j) {
       if ((j + start) == het[i]){
         i++;  
@@ -220,14 +220,14 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
         target[j - i] = seq[j]; 
       }
     }
-*/
-    memcpy(target, seq, depth * sizeof(uchar));
-    target[depth] = '\0';
+
+//    memcpy(target, seq, depth * sizeof(uchar));
+    target[depth - 6] = '\0';
 
     int i;
     TreeNode *cur;
     cur = (*tree)->array;
-    for (i = 0; i < depth; ++i) {
+    for (i = 0; i < depth - 6; ++i) {
       if ((*tree)->num == (*tree)->cap) {
             (*tree) = resizeTree((*tree));
       }
@@ -282,6 +282,42 @@ void extendMatch(int *het, int cur, int num, int depth, uchar *seq, int *cc, int
   }
 }
 
+double* calculateConditionalTable(uchar *homSeq, Leaf **leaf, double epsilon) {
+//  fprintf (stderr, "homSeq : %s \t leaf_size : %d \n", homSeq, (*leaf)->num);
+  double *table = myalloc(64, double);
+  for (int i = 0; i < 64; ++i)
+	table[i] = 0.0;
+  
+  for (int i = 0; i < (*leaf)->num; ++i) {
+    int count = 0;
+    int j = 0;
+    while (homSeq[j] != '\0') {
+    	if (homSeq[j] != (*leaf)->array[i].id[j])
+	   count++;
+        if (count > 3)
+	   break;
+        j++;
+    } 
+    if (count > 3)
+	continue;
+    double factory = 1.0;
+    while(count > 0) {
+	factory *= epsilon;
+        count--;
+    }
+    table[(*leaf)->array[i].state] += (*leaf)->array[i].count * factory; 
+  }
+  return table;
+}
+
+void displayTable(double *table) {
+  for (int i = 0; i < 8; ++i) {
+  	for (int j = 0; j < 8; ++j)
+  		fprintf (stderr, "%f \t", table[i * 8 + j]);
+  	fprintf (stderr, "\n");
+  }
+}
+
 void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
  
   if (!p || !p->yz) die ("option -longWithin called without a PBWT") ;
@@ -311,7 +347,7 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
       memcpy (u[k], up->u, (M+1)*sizeof(int)) ;
       pbwtCursorForwardsReadAD (up, k) ;
     }
-  int time = 40;
+  int time = 20;
   int **geno;
   geno = myalloc(time, int*);
   for (i = 0; i < time; ++i) geno[i] = myalloc (p->N, int);
@@ -352,8 +388,6 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
 
   fprintf (stderr, "seg_num  %d \n", seg_num);
     for (s = 0; s < seg_num - 2; ++s) {
-//  fprintf (stderr, "s = %d \n", s) ;
-   // for (s = 1491; s < 1500; ++s) {
         Tree *tree = 0;
         Leaf *leaf = 0;
         uchar *seq;
@@ -371,8 +405,26 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
         memset(seq, '2', depth * sizeof(uchar));
         seq[depth] = '\0';
         tree = treeCreate(5000);
-        leaf = leafCreate(5000);
+        leaf = leafCreate(500);
         extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tree, &leaf);
+	//debug only
+	double* conditionTable;
+    	uchar *homSeq = myalloc(depth - 5, uchar);
+    	for (int ii = 0, jj = 0; jj < depth; ++jj) {
+		if ((jj + start) == het[ii]){
+       			ii++;  
+            	} else {
+       			homSeq[jj - ii] = (geno[t][jj + start] == 2) ? '1' : '0'; 
+      	    	}	
+	}	
+	homSeq[depth - 6] = '\0';
+	conditionTable = calculateConditionalTable(homSeq, &leaf, 0.1);
+	if (s == 1000) {
+		fprintf (stderr, "homSeq : %s \t leaf_size : %d \n", homSeq, leaf->num);
+		displayTable(conditionTable);
+	}
+	free(homSeq);
+	free(conditionTable);
      //tablesDisplay(tables);      
      //leafDisplay(leaf);      
         free(seq);
@@ -381,7 +433,6 @@ void pbwtShapeItWithMiss (PBWT *p, FILE *out) {
     }
     free(het);
   } 
-  fprintf (stderr, "finished \n") ; timeUpdate ();
   /* cleanup */
   free(x); free(pos); free(cc);
   for (j = 0 ; j < N ; ++j) free(u[j]) ; free (u) ;
