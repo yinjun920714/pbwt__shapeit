@@ -222,7 +222,7 @@ void randomSampling(int **seg, int **g1, int **f1, int **g2, int **f2, int *pos,
 void shapeItMulti(PBWT *p, int maxGeno, int times, FILE *out) ;
 void pbwtShapeItGeno (PBWT *p, FILE *in, int maxGeno, FILE *out) ;
 void pbwtCreateGeno (PBWT *p, FILE *out) ;
-void pbwtShapeItWithMiss (PBWT *p, FILE *out) ;
+void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) ;
 
 
 /* pbwtImpute.c */
