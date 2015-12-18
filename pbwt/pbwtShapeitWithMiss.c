@@ -323,7 +323,7 @@ static void countHelp(uchar *x, int start, int end, int *cc, int **u, int *f, in
 void calculateConditionalTable(uchar *homSeq, Leaf **leaf, double** conditionalTable, int s, double epsilon) {
   //  fprintf (stderr, "homSeq : %s \t leaf_size : %d \n", homSeq, (*leaf)->num);
   for (int i = 0; i < 64; ++i)
-	conditionalTable[i][s] = 0.0;
+	conditionalTable[i][s] = 0.0;  
   
   for (int i = 0; i < (*leaf)->num; ++i) {
     int count = 0;
@@ -335,11 +335,11 @@ void calculateConditionalTable(uchar *homSeq, Leaf **leaf, double** conditionalT
     } 
     double factory = 1.0;
     while(count > 0) {
-	      factory *= epsilon;
+	factory *= epsilon;
         count--;
     }
 
-    conditionalTable[(*leaf)->array[i].state][s] += (*leaf)->array[i].count * factory; 
+    conditionalTable[(*leaf)->array[i].state][s] += ((*leaf)->array[i].count * factory); 
   }
 }
 
@@ -349,10 +349,10 @@ void viterbiSamplingWithMiss(int** g1, int** f1, double** conditionTables, int *
   double **data; //condition probability
   data = myalloc(8, double* );
   for ( i = 0; i < 8; ++i ) {
-    data[i] = myalloc(seg_num, double*); }
+    data[i] = myalloc(seg_num, double); }
   phis = myalloc(8, int* );
   for ( i = 0; i < 8; ++i ) {
-    phis[i] = myalloc(seg_num, int*); }
+    phis[i] = myalloc(seg_num, int); }
   int total = 0;
   for( i = 0; i < 8; ++i) {
     total += ( g1[i][0] - f1[i][0] ); }
@@ -436,8 +436,9 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
   int s, seg_num; /* for the segment number and current segment */
   uchar *shape1;      /* for the shapeit seq1 */
   uchar *shape2;      /* for the shapeit seq2 */
+  uchar *homSeq;
   double w = 1.0 / M; /* the small weight for the add weight */
-  double epsilon = thousandths/1000;
+  double epsilon = (double)thousandths/1000;
 
   /* build indexes */
   u = myalloc (N,int*) ; for (i = 0 ; i < N ; ++i) u[i] = myalloc (p->M+1, int) ;
@@ -459,10 +460,11 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
     }
   //clean up
   pbwtCursorDestroy (up) ;
-  origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
+  origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar);
   fprintf (stderr, "Made indices: \n") ; timeUpdate ();
 
-  int time = 20;
+//  int time = M/2;
+  int time = 1;
   int *pos;           /* record the heterozyogous position */
   pos = myalloc (N, int) ;
   for (int t = 0; t < time; ++t) {
@@ -495,11 +497,11 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
     int depth;
     int *het = myalloc(6, int);
     for ( i = 0; i < 8; ++i) { 
-      f1[i] = myalloc(seg_num, int*);
-      g1[i] = myalloc(seg_num, int*);
+      f1[i] = myalloc(seg_num, int);
+      g1[i] = myalloc(seg_num, int);
     }
     for ( i = 0; i < 64; ++i) { 
-      conditionTable[i] = myalloc(seg_num, double*);
+      conditionTable[i] = myalloc(seg_num, double);
     }
 
     /* initial f1,g1 */
@@ -521,7 +523,7 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
     }
 
 
-    fprintf (stderr, "seg_num  %d \n", seg_num);
+    //fprintf (stderr, "seg_num  %d \n", seg_num);
 
     for (s = 0; s < seg_num - 2; ++s) {
         Tree *tree = 0;
@@ -543,19 +545,18 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
         tree = treeCreate(5000);
         leaf = leafCreate(500);
         extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tree, &leaf);
-  
-      	uchar *homSeq = myalloc(depth - 5, uchar);
+      	homSeq = myalloc(depth - 5, uchar);
       	for (int ii = 0, jj = 0; jj < depth; ++jj) {
-		      if ((jj + start) == het[ii]){
-       		 ii++;  
-          } else {
-       		 homSeq[jj - ii] = x[jj + start]; 
-      	  }	
-	      }
-	      homSeq[depth - 6] = '\0';
-	      calculateConditionalTable(homSeq, &leaf, conditionTable, s, epsilon);
+		if ((jj + start) == het[ii]){
+       			 ii++;  
+          	} else {
+			homSeq[jj - ii] = x[jj + start] == 0 ? '0' : '1'; 
+      	  	}		
+	}
+	homSeq[depth - 6] = '\0';
+	calculateConditionalTable(homSeq, &leaf, conditionTable, s, epsilon);
 	
-	      free(homSeq);
+	free(homSeq);
         //tablesDisplay(tables);      
         //leafDisplay(leaf);      
         
@@ -570,16 +571,26 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
     free(het);
     /* cleanup */
     for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
+
+    //debug    
+    for( s = 1000; s < 1010; ++s) {
+    	for (int loop = 0; loop < 64; ++loop) {
+      		fprintf(out, "%f ", conditionTable[loop][s]);
+    	}
+	fprintf(out, "\n");		
+    }
+
     for ( i = 0; i < 64; ++i) { free(conditionTable[i]); }
 
-  } 
-
+  }
+/* 
   //output the shapeit result.
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       fprintf(out, "%u ", reference[i][j]);
     fprintf(out, "\n");
   }
+*/
   fclose(out);
 
   /* cleanup */

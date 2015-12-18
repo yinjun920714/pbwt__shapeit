@@ -336,7 +336,8 @@ void pbwtShapeIt1 (PBWT *p, FILE *out) //fix heter number
   fprintf (stderr, "Made indices: \n") ; timeUpdate () ;
 
   int t;            //multi_time
-  int TIMES = M/2;
+  //int TIMES = M/2;
+  int TIMES = 1;
   int L;
   for (t = 0; t < TIMES; ++t) {
     L = t;
@@ -409,7 +410,13 @@ void pbwtShapeIt1 (PBWT *p, FILE *out) //fix heter number
       }
       start = end;
     }
-   
+//debug
+for (s = 1000; s < 1010; ++s) {
+   for (int ai = 0; ai < 64; ++ai)   
+ 	  fprintf(out, "%d ", g2[ai][s] - f2[ai][s]);
+   fprintf(out, "\n");
+}
+/*   
     //minus the match number by 1 for the origin sequence
     for ( i = 0; i < seg_num - 1; ++i) {
       //find the state of this block
@@ -426,6 +433,7 @@ void pbwtShapeIt1 (PBWT *p, FILE *out) //fix heter number
       f2[index][i]++;      //for origin[0];
       f2[63 - index][i]++;  //for origin[1];
     }
+*/
 
   //shapeit for this individual
   viterbiSampling1(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;
@@ -436,13 +444,14 @@ void pbwtShapeIt1 (PBWT *p, FILE *out) //fix heter number
   for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
   for ( i = 0; i < 64; ++i) { free(f2[i]); free(g2[i]); }
   }
-  
+/*
   //output the shapeit result.
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       fprintf(out, "%u ", reference[i][j]);
     fprintf(out, "\n");
   }
+*/
   fclose(out);
   
   /* cleanup */
@@ -506,7 +515,7 @@ uchar** pbwtShapeIt2 (PBWT *p, int maxGeno, FILE *out) //extensibile heter numbe
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar*);
 
   int t;  //multi_time
-  int TIMES = M/2;
+  int TIMES = 20;
   int L;
   for (t = 0; t < TIMES; ++t) {
     L = t;
