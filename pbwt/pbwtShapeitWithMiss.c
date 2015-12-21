@@ -226,6 +226,7 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
 
     int i;
     int cur = 0;
+    /*
     for (i = 0; i < depth - 6; ++i) {
       if ((*tree)->num == (*tree)->cap) {
             (*tree) = resizeTree((*tree));
@@ -249,16 +250,23 @@ void insertTree(int *het, int depth, uchar *seq, Tree **tree, Leaf **leaf, int c
         cur = (*tree)->array[cur].right;
       }  
     }
+    */
 
     if ((*leaf)->num == (*leaf)->cap) {
       (*leaf) = resizeLeaf((*leaf));
     }
+    /*
     (*tree)->array[cur].left = (*leaf)->num;
     (*tree)->array[cur].right = (*leaf)->num;
     (*leaf)->num++;
     (*leaf)->array[(*tree)->array[cur].left].id = target;
     (*leaf)->array[(*tree)->array[cur].left].count = count;
     (*leaf)->array[(*tree)->array[cur].left].state = index;
+    */
+    (*leaf)->array[(*leaf)->num].id = target;
+    (*leaf)->array[(*leaf)->num].count = count;
+    (*leaf)->array[(*leaf)->num].state = index;
+    (*leaf)->num++;
 }
 
 //store in tree and leaf
@@ -463,8 +471,8 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
   origin = myalloc (2, uchar*); for (i = 0; i < 2; ++i) origin[i] = myalloc (p->N, uchar);
   fprintf (stderr, "Made indices: \n") ; timeUpdate ();
 
-//  int time = M/2;
-  int time = 1;
+  int time = M/2;
+  //  int time = 5;
   int *pos;           /* record the heterozyogous position */
   pos = myalloc (N, int) ;
   for (int t = 0; t < time; ++t) {
@@ -571,7 +579,7 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
     free(het);
     /* cleanup */
     for ( i = 0; i < 8; ++i)  { free(f1[i]); free(g1[i]); }
-
+/*
     //debug    
     for( s = 1000; s < 1010; ++s) {
     	for (int loop = 0; loop < 64; ++loop) {
@@ -579,18 +587,16 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
     	}
 	fprintf(out, "\n");		
     }
-
+*/
     for ( i = 0; i < 64; ++i) { free(conditionTable[i]); }
 
   }
-/* 
   //output the shapeit result.
   for ( j = 0; j < N; ++j) {
     for ( i = 0; i < M; ++i)
       fprintf(out, "%u ", reference[i][j]);
     fprintf(out, "\n");
   }
-*/
   fclose(out);
 
   /* cleanup */
