@@ -418,7 +418,7 @@ for (s = 1000; s < 1010; ++s) {
    fprintf(out, "\n");
 }
 */
-/*   
+   
     //minus the match number by 1 for the origin sequence
     for ( i = 0; i < seg_num - 1; ++i) {
       //find the state of this block
@@ -435,7 +435,7 @@ for (s = 1000; s < 1010; ++s) {
       f2[index][i]++;      //for origin[0];
       f2[63 - index][i]++;  //for origin[1];
     }
-*/
+
 
   //shapeit for this individual
   viterbiSampling1(g1, f1, g2, f2, pos, seg_num, shape1, shape2, w) ;

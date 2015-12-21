@@ -530,7 +530,15 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
       start = end;
     }
 
-
+    //minus the match number by 1 for the origin sequence
+    for ( i = 0; i < seg_num - 1; ++i) {
+      //find the state of this block
+      int index = origin[0][pos[i * 3]] * 4 + origin[0][pos[i * 3 + 1]] * 2 + origin[0][pos[i * 3 + 2]];
+      //increase the start position by 1, equal to minus the match number by 1
+      f1[index][i]++;      //for origin[0];
+      f1[7 - index][i]++;  //for origin[1];
+    }
+    
     //fprintf (stderr, "seg_num  %d \n", seg_num);
 
     for (s = 0; s < seg_num - 2; ++s) {
@@ -555,7 +563,7 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
         extendMatch(het, start, 0, depth, seq, cc, u, 0, M, &tree, &leaf);
       	homSeq = myalloc(depth - 5, uchar);
       	for (int ii = 0, jj = 0; jj < depth; ++jj) {
-		if ((jj + start) == het[ii]){
+		    if ((jj + start) == het[ii]){
        			 ii++;  
           	} else {
 			homSeq[jj - ii] = x[jj + start] == 0 ? '0' : '1'; 
@@ -572,6 +580,16 @@ void pbwtShapeItWithMiss (PBWT *p, int thousandths, FILE *out) {
         treeDestroy(tree);
         leafDestroy(leaf);
     }
+
+    //minus the match number by 1 for the origin sequence
+    for ( i = 0; i < seg_num - 2; ++i) {
+      //find the state of two continue blocks.
+      int index = origin[0][pos[i * 3]] * 32 + origin[0][pos[i * 3 + 1]] * 16 + origin[0][pos[i * 3 + 2]] * 8  //previous block
+                  + origin[0][pos[i * 3 + 3]] * 4 + origin[0][pos[i * 3 + 4]] * 2 + origin[0][pos[i * 3 + 5]]; //current block
+      conditionTable[index][i]--;      //for origin[0];
+      conditionTable[63 - index][i]--;  //for origin[1];
+    }
+
     viterbiSamplingWithMiss(g1, f1, conditionTable, pos, seg_num, shape1, shape2, w);
     memcpy (reference[2 * t], shape1, N*sizeof(uchar));
     memcpy (reference[2 * t + 1], shape2, N*sizeof(uchar));
